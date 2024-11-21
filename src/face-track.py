@@ -3,7 +3,7 @@ from gpiozero import AngularServo
 from time import sleep
 
 # Initialize the servo
-servo = AngularServo(18, min_pulse_width=0.0005, max_pulse_width=0.0025)
+servo = AngularServo(18, min_pulse_width=0.0005, max_pulse_width=0.0023)
 
 # Specify the full path to the Haar cascade file
 haar_cascade_path = "/usr/share/opencv4/haarcascades/haarcascade_frontalface_default.xml"
@@ -41,10 +41,10 @@ while True:
 
         # Map the face position to servo range [-45, 45]
         normalized_position = (face_center_x - frame_width / 2) / (frame_width / 2)
-        target_angle = -45 * normalized_position  # Map to [-45, 45]
+        target_angle = -60 * normalized_position  # Map to [-45, 45]
 
         # Limit the angle within the servo range
-        target_angle = max(-45, min(45, target_angle))
+        target_angle = max(-60, min(60, target_angle))
 
         # Move the servo if the angle difference is significant
         if abs(target_angle - current_angle) > 1:  # Update only if change > 1 degree
