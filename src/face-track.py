@@ -22,11 +22,13 @@ face_cascade = cv2.CascadeClassifier(haar_cascade_path)
 cap = cv2.VideoCapture(0)
 
 # Inicjalizacja kąta serwa
-current_angle = 50  # Środek zakresu (100-140)
+current_angle = 50  # Początkowy kąt serwa (środek zakresu 30-90)
 sendAngle(current_angle)
 
-step_size = 1  # Wielkość kroku przy regulacji kąta
-threshold = 0  # Histereza, aby unikać drobnych oscylacji
+# Parametry regulatora P
+Kp = 0.03  # Wzmocnienie regulatora P (można dostosować)
+# setpoint = 240  # Pożądana pozycja twarzy (środek obrazu w osi Y)
+dead_zone = 0  # Strefa martwa, aby uniknąć oscylacji
 
 while True:
     ret, frame = cap.read()
@@ -38,17 +40,27 @@ while True:
 
     if len(faces) > 0:
         (x, y, w, h) = faces[0]
-        face_center_y = y + h // 2
+        face_center_y = y + h // 2  # Środek twarzy w osi Y
         frame_height = frame.shape[0]
-        center_threshold = frame_height // 2
 
-        if face_center_y < center_threshold - threshold:
-            current_angle = min(90, current_angle + step_size)  # Przesuń serwo w górę
-        elif face_center_y > center_threshold + threshold:
-            current_angle = max(30, current_angle - step_size)  # Przesuń serwo w dół
+        # Obliczenie błędu (odchylenia od setpoint)
+        setpoint = frame_height // 2
+        error = setpoint - face_center_y
 
-        sendAngle(current_angle)
-        print(f"Adjusted angle: {current_angle}")
+        # Jeśli błąd jest poza strefą martwą, zastosuj regulator P
+        if abs(error) > dead_zone:
+            # Regulator P: korekta = Kp * error
+            correction = Kp * error
+
+            # Aktualizacja kąta serwa
+            current_angle += correction
+
+            # Ograniczenie kąta do zakresu 30-90
+            current_angle = max(30, min(90, current_angle))
+
+            # Wyślij nowy kąt do serwa
+            sendAngle(int(current_angle))
+            print(f"Adjusted angle: {int(current_angle)}, Error: {error}")
 
     cv2.imshow('Face Detection', frame)
 
