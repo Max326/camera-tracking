@@ -26,7 +26,7 @@ current_angle = 50  # Środek zakresu (100-140)
 sendAngle(current_angle)
 
 step_size = 1  # Wielkość kroku przy regulacji kąta
-threshold = 10  # Histereza, aby unikać drobnych oscylacji
+threshold = 0  # Histereza, aby unikać drobnych oscylacji
 
 while True:
     ret, frame = cap.read()
