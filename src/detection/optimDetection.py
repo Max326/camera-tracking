@@ -4,7 +4,7 @@ import numpy as np
 import time
 
 # Load the ONNX model
-onnx_model_path = 'runs/detect/train4/weights/best.onnx'
+onnx_model_path = 'runs/detect/train4/weights/best_fp16.onnx'
 session = ort.InferenceSession(onnx_model_path)
 
 # Path to the video file
@@ -28,13 +28,20 @@ while cap.isOpened():
     if not ret:
         break
 
+    frame_start_time = time.time()
+
     # Preprocess the frame for ONNX model
     input_frame = cv2.resize(frame, (640, 640))  # Resize to model input size
     input_frame = input_frame.transpose(2, 0, 1)  # HWC to CHW
-    input_frame = input_frame[np.newaxis, :, :, :].astype(np.float32) / 255.0  # Normalize
+    input_frame = input_frame[np.newaxis, :, :, :].astype(np.float16) / 255.0  # Normalize
 
     # Run inference
     outputs = session.run(None, {session.get_inputs()[0].name: input_frame})
+
+    frame_end_time = time.time()
+    frame_time = frame_end_time - frame_start_time
+    fps = 1 / frame_time if frame_time > 0 else 0
+    print(f"FPS: {fps:.2f}")
 
     # Post-process the outputs (e.g., draw bounding boxes)
     # This depends on your model's output format
