@@ -22,6 +22,22 @@ if not cap.isOpened():
 frame_count = 0
 start_time = time.time()
 
+# Define a function to decode YOLOv8 outputs
+def decode_outputs(outputs, frame_shape, conf_threshold=0.5):
+    boxes, scores, class_ids = [], [], []
+    for output in outputs[0]:  # Iterate over predictions
+        conf = output[4]  # Confidence score
+        if conf >= conf_threshold:
+            x_center, y_center, width, height = output[:4]
+            x1 = int((x_center - width / 2) * frame_shape[1])
+            y1 = int((y_center - height / 2) * frame_shape[0])
+            x2 = int((x_center + width / 2) * frame_shape[1])
+            y2 = int((y_center + height / 2) * frame_shape[0])
+            boxes.append([x1, y1, x2, y2])
+            scores.append(conf)
+            class_ids.append(int(output[5]))  # Class ID
+    return boxes, scores, class_ids
+
 # Process the video frame by frame
 while cap.isOpened():
     ret, frame = cap.read()
@@ -36,9 +52,15 @@ while cap.isOpened():
     # Run inference
     outputs = session.run(None, {session.get_inputs()[0].name: input_frame})
 
-    # Post-process the outputs (e.g., draw bounding boxes)
-    # This depends on your model's output format
-    # For YOLOv8, you may need to decode the outputs into bounding boxes
+    # Decode outputs
+    boxes, scores, class_ids = decode_outputs(outputs, frame.shape)
+
+    # Draw bounding boxes on the frame
+    for box, score, class_id in zip(boxes, scores, class_ids):
+        x1, y1, x2, y2 = box
+        cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+        label = f"Class {class_id}: {score:.2f}"
+        cv2.putText(frame, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
     # Display the frame
     cv2.imshow('YOLOv8 Detection', frame)
