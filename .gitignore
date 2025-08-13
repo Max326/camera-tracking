@@ -1,3 +1,9 @@
+# datasets
+data/
+
+# venv
+yolov8-env/
+
 # the weights file is too big
 yolo/yolov4.weights
 
