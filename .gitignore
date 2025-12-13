@@ -1,6 +1,7 @@
 # datasets
 data/photos/
 data/dataset/
+data/
 
 # venv
 yolov8-env/
