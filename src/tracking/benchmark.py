@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import glob
 import math
+import matplotlib.pyplot as plt
 
 # --- CONFIGURATION ---
 VISUALIZE = True 
@@ -202,9 +203,53 @@ if __name__ == "__main__":
         print(f"\nSummary saved to: {summary_path}")
         print(summary_df)
 
-        # 2. The Detailed CSV (Every frame from every tracker)
-        if SAVE_DETAILED_LOGS and all_frame_results:
+        # 2. The Detailed CSV and Plots
+        if all_frame_results:
             full_df = pd.concat(all_frame_results)
-            detailed_path = os.path.join(OUTPUT_DIR, "benchmark_full_frames.csv")
-            full_df.to_csv(detailed_path, index=False)
-            print(f"Detailed logs saved to: {detailed_path}")
+            
+            if SAVE_DETAILED_LOGS:
+                detailed_path = os.path.join(OUTPUT_DIR, "benchmark_full_frames.csv")
+                full_df.to_csv(detailed_path, index=False)
+                print(f"Detailed logs saved to: {detailed_path}")
+
+            # --- PLOTTING ---
+            print("\nGenerating plots...")
+            unique_sequences = full_df['Sequence'].unique()
+            for seq in unique_sequences:
+                seq_df = full_df[full_df['Sequence'] == seq]
+                
+                # Plot IoU
+                plt.figure(figsize=(10, 6))
+                for tracker in seq_df['Tracker'].unique():
+                    tracker_df = seq_df[seq_df['Tracker'] == tracker]
+                    plt.plot(tracker_df['Frame'], tracker_df['IoU'], label=tracker, linewidth=1.5)
+                
+                plt.title(f'IoU over Time - {seq}')
+                plt.xlabel('Frame')
+                plt.ylabel('IoU')
+                plt.legend()
+                plt.grid(True, alpha=0.3)
+                plt.ylim(0, 1.05)
+                iou_plot_path = os.path.join(OUTPUT_DIR, f"{seq}_iou.png")
+                plt.savefig(iou_plot_path)
+                plt.close()
+                print(f"Saved IoU plot to {iou_plot_path}")
+
+                # Plot Center Error
+                plt.figure(figsize=(10, 6))
+                for tracker in seq_df['Tracker'].unique():
+                    tracker_df = seq_df[seq_df['Tracker'] == tracker]
+                    # Replace -1 with NaN for plotting so it doesn't skew the graph
+                    errors = tracker_df['CenterError'].copy()
+                    errors[errors == -1] = np.nan
+                    plt.plot(tracker_df['Frame'], errors, label=tracker, linewidth=1.5)
+                
+                plt.title(f'Center Error over Time - {seq}')
+                plt.xlabel('Frame')
+                plt.ylabel('Center Error (px)')
+                plt.legend()
+                plt.grid(True, alpha=0.3)
+                error_plot_path = os.path.join(OUTPUT_DIR, f"{seq}_center_error.png")
+                plt.savefig(error_plot_path)
+                plt.close()
+                print(f"Saved Center Error plot to {error_plot_path}")
