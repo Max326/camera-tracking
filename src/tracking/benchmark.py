@@ -176,7 +176,7 @@ if __name__ == "__main__":
     trackers_to_test = ["BOOSTING", "MEDIANFLOW", "KCF", "CSRT", "MOSSE"] 
     # trackers_to_test = ["BOOSTING", "MEDIANFLOW", "MIL", "TLD"]
     
-    sequences_to_test = ["person2"] # Add more here, e.g. ["car1", "person1"]
+    sequences_to_test = ["car6"] # Add more here, e.g. ["car1", "person1"]
     
     all_frame_results = []
     summary_results = []
