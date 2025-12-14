@@ -15,7 +15,7 @@ SAVE_DETAILED_LOGS = True
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..'))
 DATA_ROOT = os.path.join(PROJECT_ROOT, "data", "UAV123")
-ANNO_PATH = os.path.join(DATA_ROOT, "anno", "UAV123")
+ANNO_PATH = os.path.join(DATA_ROOT, "anno", "UAV20L")
 SEQ_PATH  = os.path.join(DATA_ROOT, "data_seq", "UAV123")
 OUTPUT_DIR = os.path.join(PROJECT_ROOT, "results")
 
@@ -176,7 +176,7 @@ if __name__ == "__main__":
     trackers_to_test = ["BOOSTING", "MEDIANFLOW", "KCF", "CSRT", "MOSSE"] 
     # trackers_to_test = ["BOOSTING", "MEDIANFLOW", "MIL", "TLD"]
     
-    sequences_to_test = ["car2"] # Add more here, e.g. ["car1", "person1"]
+    sequences_to_test = ["car16"] # Add more here, e.g. ["car1", "person1"]
     
     all_frame_results = []
     summary_results = []
