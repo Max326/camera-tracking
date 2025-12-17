@@ -10,12 +10,12 @@ import matplotlib.pyplot as plt
 # --- CONFIGURATION ---
 VISUALIZE = True 
 # Save a big CSV with every frame from every tracker?
-SAVE_DETAILED_LOGS = True 
+SAVE_DETAILED_LOGS = False 
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..'))
 DATA_ROOT = os.path.join(PROJECT_ROOT, "data", "UAV123")
-ANNO_PATH = os.path.join(DATA_ROOT, "anno", "UAV20L")
+ANNO_PATH = os.path.join(DATA_ROOT, "anno", "UAV123")
 SEQ_PATH  = os.path.join(DATA_ROOT, "data_seq", "UAV123")
 OUTPUT_DIR = os.path.join(PROJECT_ROOT, "results")
 
@@ -159,10 +159,16 @@ def calculate_summary(df):
     # Filter out occluded frames where Error is -1
     valid_df = df[df['CenterError'] != -1]
     
+    # Calculate FPS only for frames where the tracker actually has overlap (IoU > 0)
+    # This filters out the "sky tracking" spikes.
+    successful_frames = df[df['IoU'] > 0]
+    valid_fps = successful_frames['FPS'].mean() if not successful_frames.empty else 0.0
+    
     summary = {
         "Tracker": df['Tracker'].iloc[0],
         "Sequence": df['Sequence'].iloc[0],
         "Avg FPS": df['FPS'].mean(),
+        "Valid FPS": valid_fps, # where IoU > 0
         "Avg IoU": df['IoU'].mean(),
         "Precision (CLE < 20px)": (valid_df['CenterError'] < 20).mean(), # % of frames where error < 20px
         "Success Rate (IoU > 0.5)": (df['IoU'] > 0.5).mean()
@@ -176,52 +182,45 @@ if __name__ == "__main__":
     trackers_to_test = ["BOOSTING", "MEDIANFLOW", "KCF", "CSRT", "MOSSE"] 
     # trackers_to_test = ["BOOSTING", "MEDIANFLOW", "MIL", "TLD"]
     
-    sequences_to_test = ["car16"] # Add more here, e.g. ["car1", "person1"]
+    sequences_to_test = ["car3", "person2", "truck2", "truck3", "wakeboard1", "wakeboard2", "wakeboard3"] # Add more here, e.g. ["car1", "person1"]
     
     all_frame_results = []
     summary_results = []
 
     for seq in sequences_to_test:
+        seq_summary_results = [] # Reset for each sequence
+        seq_frame_results = []   # Reset for each sequence
+
         for tracker_name in trackers_to_test:
             df = run_benchmark(seq, tracker_name)
             
             if df is not None and not df.empty:
                 # 1. Collect Detailed Data
-                all_frame_results.append(df)
+                seq_frame_results.append(df)
+                all_frame_results.append(df) # Keep for global detailed log if needed
                 
                 # 2. Calculate Summary for this run
                 summ = calculate_summary(df)
-                summary_results.append(summ)
+                seq_summary_results.append(summ)
+                summary_results.append(summ) # Keep for global summary if needed
                 print(f"Finished {tracker_name} on {seq} -> Precision: {summ['Precision (CLE < 20px)']:.2%}")
 
-    # --- SAVE OUTPUTS ---
-    if summary_results:
-        # 1. The Summary CSV (One row per tracker/sequence)
-        summary_df = pd.DataFrame(summary_results)
-        summary_path = os.path.join(OUTPUT_DIR, "benchmark_summary.csv")
-        summary_df.to_csv(summary_path, index=False)
-        print(f"\nSummary saved to: {summary_path}")
-        print(summary_df)
+        # --- SAVE PER-SEQUENCE OUTPUTS ---
+        if seq_summary_results:
+            # 1. The Summary CSV for this sequence
+            summary_df = pd.DataFrame(seq_summary_results)
+            summary_path = os.path.join(OUTPUT_DIR, f"{seq}_benchmark_summary.csv")
+            summary_df.to_csv(summary_path, index=False)
+            print(f"\nSummary for {seq} saved to: {summary_path}")
 
-        # 2. The Detailed CSV and Plots
-        if all_frame_results:
-            full_df = pd.concat(all_frame_results)
-            
-            if SAVE_DETAILED_LOGS:
-                detailed_path = os.path.join(OUTPUT_DIR, "benchmark_full_frames.csv")
-                full_df.to_csv(detailed_path, index=False)
-                print(f"Detailed logs saved to: {detailed_path}")
-
-            # --- PLOTTING ---
-            print("\nGenerating plots...")
-            unique_sequences = full_df['Sequence'].unique()
-            for seq in unique_sequences:
-                seq_df = full_df[full_df['Sequence'] == seq]
+            # 2. Plots for this sequence
+            if seq_frame_results:
+                seq_full_df = pd.concat(seq_frame_results)
                 
                 # Plot IoU
                 plt.figure(figsize=(10, 6))
-                for tracker in seq_df['Tracker'].unique():
-                    tracker_df = seq_df[seq_df['Tracker'] == tracker]
+                for tracker in seq_full_df['Tracker'].unique():
+                    tracker_df = seq_full_df[seq_full_df['Tracker'] == tracker]
                     plt.plot(tracker_df['Frame'], tracker_df['IoU'], label=tracker, linewidth=1.5)
                 
                 plt.title(f'IoU over Time - {seq}')
@@ -237,8 +236,8 @@ if __name__ == "__main__":
 
                 # Plot Center Error
                 plt.figure(figsize=(10, 6))
-                for tracker in seq_df['Tracker'].unique():
-                    tracker_df = seq_df[seq_df['Tracker'] == tracker]
+                for tracker in seq_full_df['Tracker'].unique():
+                    tracker_df = seq_full_df[seq_full_df['Tracker'] == tracker]
                     # Replace -1 with NaN for plotting so it doesn't skew the graph
                     errors = tracker_df['CenterError'].copy()
                     errors[errors == -1] = np.nan
@@ -253,3 +252,10 @@ if __name__ == "__main__":
                 plt.savefig(error_plot_path)
                 plt.close()
                 print(f"Saved Center Error plot to {error_plot_path}")
+
+    # --- SAVE GLOBAL DETAILED LOGS (Optional) ---
+    if SAVE_DETAILED_LOGS and all_frame_results:
+        full_df = pd.concat(all_frame_results)
+        detailed_path = os.path.join(OUTPUT_DIR, "benchmark_full_frames.csv")
+        full_df.to_csv(detailed_path, index=False)
+        print(f"Detailed logs (all sequences) saved to: {detailed_path}")

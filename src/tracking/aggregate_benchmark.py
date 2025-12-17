@@ -33,8 +33,8 @@ def aggregate_results():
 
     full_df = pd.concat(dfs, ignore_index=True)
     
-    # Columns to aggregate
-    numeric_cols = ["Avg FPS", "Avg IoU", "Precision (CLE < 20px)", "Success Rate (IoU > 0.5)"]
+    # Columns to aggregate (Added "Valid FPS")
+    numeric_cols = ["Avg FPS", "Valid FPS", "Avg IoU", "Precision (CLE < 20px)", "Success Rate (IoU > 0.5)"]
     
     # Ensure columns exist before aggregating
     available_cols = [c for c in numeric_cols if c in full_df.columns]
