@@ -15,7 +15,8 @@ SAVE_DETAILED_LOGS = False
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..'))
 DATA_ROOT = os.path.join(PROJECT_ROOT, "data", "UAV123")
-ANNO_PATH = os.path.join(DATA_ROOT, "anno", "UAV123")
+ANNO_PATH_UAV123 = os.path.join(DATA_ROOT, "anno", "UAV123")
+ANNO_PATH_UAV20L = os.path.join(DATA_ROOT, "anno", "UAV20L")
 SEQ_PATH  = os.path.join(DATA_ROOT, "data_seq", "UAV123")
 OUTPUT_DIR = os.path.join(PROJECT_ROOT, "results")
 
@@ -71,10 +72,14 @@ def run_benchmark(seq_name, tracker_name):
     print(f"--- Processing {seq_name} : {tracker_name} ---")
     
     # 1. Load Data
-    anno_file = os.path.join(ANNO_PATH, f"{seq_name}.txt")
+    # Try UAV123 first
+    anno_file = os.path.join(ANNO_PATH_UAV123, f"{seq_name}.txt")
     if not os.path.exists(anno_file):
-        print(f"Missing annotation: {anno_file}")
-        return None
+        # Try UAV20L
+        anno_file = os.path.join(ANNO_PATH_UAV20L, f"{seq_name}.txt")
+        if not os.path.exists(anno_file):
+            print(f"Missing annotation: {anno_file} (checked UAV123 and UAV20L)")
+            return None
 
     gt_boxes = load_ground_truth(anno_file)
     img_folder = os.path.join(SEQ_PATH, seq_name)
@@ -177,12 +182,14 @@ def calculate_summary(df):
 
 if __name__ == "__main__":
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    
+    # skonczylo sie na car2 robic, trzeba dokonczyc od car3 zbieranie wynikow
+
     # Define which trackers and sequences to run
-    trackers_to_test = ["BOOSTING", "MEDIANFLOW", "KCF", "CSRT", "MOSSE", "TLD", "MIL"] 
+    trackers_to_test = ["BOOSTING", "MEDIANFLOW", "KCF", "CSRT", "MOSSE", "MIL", "TLD"] 
     # trackers_to_test = ["BOOSTING", "MEDIANFLOW", "MIL", "TLD"]
     
-    sequences_to_test = ["boat1", "car1", "car2", "car3", "car6", "car8", "person2", "person3", "truck1", "truck2", "truck3", "wakeboard1", "wakeboard2", "wakeboard3"] # Add more here, e.g. ["car1", "person1"]
+    sequences_to_test = ["car3", "car6", "car8", "person2", "person3", "truck1", "truck2", "truck3", "wakeboard1", "wakeboard2", "wakeboard3"] # Add more here, e.g. ["car1", "person1"]
+    # sequences_to_test = ["car1"] # Add more here, e.g. ["car1", "person1"]
     
     all_frame_results = []
     summary_results = []
