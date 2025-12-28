@@ -55,9 +55,12 @@ def aggregate_results():
     sort_col = "Success Rate (IoU > 0.5)" if "Success Rate (IoU > 0.5)" in aggregated.columns else "Avg IoU"
     aggregated = aggregated.sort_values(by=sort_col, ascending=False)
     
+    # Round numeric columns to 4 decimal places for cleaner output
+    aggregated = aggregated.round(4)
+
     # Display results
     print("\n--- Aggregated Benchmark Results (Mean across all sequences) ---")
-    print(aggregated.to_string(index=False, float_format="%.4f"))
+    print(aggregated.to_string(index=False)) # float_format is now redundant but harmless
     
     # Save to CSV
     output_path = os.path.join(RESULTS_DIR, "aggregated_benchmark_results.csv")
