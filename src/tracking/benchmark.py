@@ -6,6 +6,7 @@ import pandas as pd
 import glob
 import math
 import matplotlib.pyplot as plt
+from ultralytics import YOLO
 
 # --- CONFIGURATION ---
 VISUALIZE = True 
@@ -20,6 +21,81 @@ ANNO_PATH_UAV20L = os.path.join(DATA_ROOT, "anno", "UAV20L")
 SEQ_PATH  = os.path.join(DATA_ROOT, "data_seq", "UAV123")
 OUTPUT_DIR = os.path.join(PROJECT_ROOT, "results")
 
+# --- YOLO WRAPPER ---
+class YOLOTrackerWrapper:
+    def __init__(self, model_path='yolov8n.pt', tracker_config='botsort.yaml'):
+        self.model = YOLO(model_path)
+        self.tracker_config = tracker_config
+        self.target_id = None
+        self.last_box = None
+
+    def init(self, frame, box):
+        # box is (x, y, w, h)
+        # Run tracking on the first frame to get IDs
+        results = self.model.track(frame, persist=True, tracker=self.tracker_config, verbose=False)
+        
+        if not results or not results[0].boxes.id:
+            return False
+
+        # Find the detection closest to the init box to lock onto the ID
+        min_dist = float('inf')
+        best_id = None
+        
+        # Convert init box to center
+        gt_center = (box[0] + box[2]/2, box[1] + box[3]/2)
+
+        boxes = results[0].boxes.xywh.cpu().numpy() # center_x, center_y, w, h
+        ids = results[0].boxes.id.cpu().numpy()
+
+        for i, det_box in enumerate(boxes):
+            # det_box is [cx, cy, w, h]
+            dist = math.sqrt((det_box[0] - gt_center[0])**2 + (det_box[1] - gt_center[1])**2)
+            if dist < min_dist:
+                min_dist = dist
+                best_id = ids[i]
+                # Store box in x,y,w,h format for consistency
+                self.last_box = (det_box[0] - det_box[2]/2, det_box[1] - det_box[3]/2, det_box[2], det_box[3])
+
+        self.target_id = best_id
+        return True
+
+    def update(self, frame):
+        if self.target_id is None:
+            return False, (0,0,0,0)
+
+        results = self.model.track(frame, persist=True, tracker=self.tracker_config, verbose=False)
+        
+        if not results or results[0].boxes.id is None:
+            return False, self.last_box # Lost
+
+        boxes = results[0].boxes.xywh.cpu().numpy()
+        ids = results[0].boxes.id.cpu().numpy()
+
+        # Look for our target ID
+        idx = np.where(ids == self.target_id)[0]
+        
+        if len(idx) > 0:
+            i = idx[0]
+            det_box = boxes[i]
+            # Convert cx,cy,w,h -> x,y,w,h
+            x = det_box[0] - det_box[2]/2
+            y = det_box[1] - det_box[3]/2
+            w = det_box[2]
+            h = det_box[3]
+            self.last_box = (x, y, w, h)
+            return True, self.last_box
+        else:
+            return False, self.last_box # Target lost in this frame
+
+# --- TRACKER FACTORY ---
+def create_tracker(name):
+    if name == "YOLOv8-BoT":
+        return YOLOTrackerWrapper(tracker_config="botsort.yaml")
+    elif name == "YOLOv8-Byte":
+        return YOLOTrackerWrapper(tracker_config="bytetrack.yaml")
+    else:
+        return TRACKERS[name]()
+
 TRACKERS = {
     "MIL": cv2.legacy.TrackerMIL_create,
     "CSRT": cv2.TrackerCSRT_create,
@@ -28,6 +104,7 @@ TRACKERS = {
     "TLD": cv2.legacy.TrackerTLD_create,
     "BOOSTING": cv2.legacy.TrackerBoosting_create,
     "MEDIANFLOW": cv2.legacy.TrackerMedianFlow_create,
+    # YOLO trackers are handled in create_tracker factory
 }
 
 def load_ground_truth(anno_file):
@@ -92,7 +169,9 @@ def run_benchmark(seq_name, tracker_name):
         return None
 
     # 2. Initialize Tracker
-    tracker = TRACKERS[tracker_name]()
+    # tracker = TRACKERS[tracker_name]() # OLD
+    tracker = create_tracker(tracker_name) # NEW
+    
     first_frame = cv2.imread(images[0])
     first_box_float = gt_boxes[0]
 
@@ -185,11 +264,11 @@ if __name__ == "__main__":
     # skonczylo sie na car2 robic, trzeba dokonczyc od car3 zbieranie wynikow
 
     # Define which trackers and sequences to run
-    trackers_to_test = ["BOOSTING", "MEDIANFLOW", "KCF", "CSRT", "MOSSE", "MIL", "TLD"] 
+    trackers_to_test = ["YOLOv8-BoT", "YOLOv8-Byte"] 
     # trackers_to_test = ["BOOSTING", "MEDIANFLOW", "MIL", "TLD"]
     
-    sequences_to_test = ["car3", "car6", "car8", "person2", "person3", "truck1", "truck2", "truck3", "wakeboard1", "wakeboard2", "wakeboard3"] # Add more here, e.g. ["car1", "person1"]
-    # sequences_to_test = ["car1"] # Add more here, e.g. ["car1", "person1"]
+    # sequences_to_test = ["car3", "car6", "car8", "person2", "person3", "truck1", "truck2", "truck3", "wakeboard1", "wakeboard2", "wakeboard3"] # Add more here, e.g. ["car1", "person1"]
+    sequences_to_test = ["truck3"] # Add more here, e.g. ["car1", "person1"]
     
     all_frame_results = []
     summary_results = []
@@ -216,6 +295,8 @@ if __name__ == "__main__":
         if seq_summary_results:
             # 1. The Summary CSV for this sequence
             summary_df = pd.DataFrame(seq_summary_results)
+            summary_df = summary_df.round(4)
+
             summary_path = os.path.join(OUTPUT_DIR, f"{seq}_benchmark_summary.csv")
             summary_df.to_csv(summary_path, index=False)
             print(f"\nSummary for {seq} saved to: {summary_path}")
