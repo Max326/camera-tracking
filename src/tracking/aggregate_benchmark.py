@@ -52,7 +52,8 @@ def aggregate_results():
     aggregated = pd.merge(aggregated, counts, on="Tracker")
     
     # Sort by Success Rate (descending)
-    sort_col = "Success Rate (IoU > 0.5)" if "Success Rate (IoU > 0.5)" in aggregated.columns else "Avg IoU"
+    # sort_col = "Success Rate (IoU > 0.5)" if "Success Rate (IoU > 0.5)" in aggregated.columns else "Avg IoU"
+    sort_col = "Precision (CLE < 20px)"
     aggregated = aggregated.sort_values(by=sort_col, ascending=False)
     
     # Round numeric columns to 4 decimal places for cleaner output
