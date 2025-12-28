@@ -28,13 +28,16 @@ class YOLOTrackerWrapper:
         self.tracker_config = tracker_config
         self.target_id = None
         self.last_box = None
+        self.lost_frames = 0
+        self.max_lost_frames = 60 # Allow 2 seconds (at 30fps) to recover
 
     def init(self, frame, box):
         # box is (x, y, w, h)
         # Run tracking on the first frame to get IDs
         results = self.model.track(frame, persist=True, tracker=self.tracker_config, verbose=False)
         
-        if not results or not results[0].boxes.id:
+        # FIX: Check if boxes.id is None explicitly
+        if not results or results[0].boxes.id is None:
             return False
 
         # Find the detection closest to the init box to lock onto the ID
@@ -57,6 +60,8 @@ class YOLOTrackerWrapper:
                 self.last_box = (det_box[0] - det_box[2]/2, det_box[1] - det_box[3]/2, det_box[2], det_box[3])
 
         self.target_id = best_id
+        self.last_box = (det_box[0] - det_box[2]/2, det_box[1] - det_box[3]/2, det_box[2], det_box[3])
+        self.lost_frames = 0
         return True
 
     def update(self, frame):
@@ -66,35 +71,70 @@ class YOLOTrackerWrapper:
         results = self.model.track(frame, persist=True, tracker=self.tracker_config, verbose=False)
         
         if not results or results[0].boxes.id is None:
-            return False, self.last_box # Lost
+            self.lost_frames += 1
+            return False, self.last_box # Return last known position
 
         boxes = results[0].boxes.xywh.cpu().numpy()
         ids = results[0].boxes.id.cpu().numpy()
 
-        # Look for our target ID
+        # 1. Try to find the existing target_id
         idx = np.where(ids == self.target_id)[0]
         
         if len(idx) > 0:
+            # Found it!
             i = idx[0]
             det_box = boxes[i]
-            # Convert cx,cy,w,h -> x,y,w,h
             x = det_box[0] - det_box[2]/2
             y = det_box[1] - det_box[3]/2
             w = det_box[2]
             h = det_box[3]
             self.last_box = (x, y, w, h)
+            self.lost_frames = 0
             return True, self.last_box
-        else:
-            return False, self.last_box # Target lost in this frame
+        
+        # 2. If ID not found, try to recover if we haven't been lost for too long
+        if self.lost_frames < self.max_lost_frames:
+            # Look for a new ID that overlaps significantly with our last known box
+            best_iou = 0
+            best_new_id = None
+            best_new_box = None
+            
+            last_box_xywh = self.last_box # (x, y, w, h)
+            
+            for i, det_box in enumerate(boxes):
+                # det_box is (cx, cy, w, h) -> convert to (x, y, w, h)
+                current_box = (det_box[0] - det_box[2]/2, det_box[1] - det_box[3]/2, det_box[2], det_box[3])
+                
+                iou = calculate_iou(last_box_xywh, current_box)
+                if iou > 0.5: # Strict threshold to avoid jumping to wrong object
+                    if iou > best_iou:
+                        best_iou = iou
+                        best_new_id = ids[i]
+                        best_new_box = current_box
+            
+            if best_new_id is not None:
+                print(f"ID Switch: {self.target_id} -> {best_new_id} (IoU: {best_iou:.2f})")
+                self.target_id = best_new_id
+                self.last_box = best_new_box
+                self.lost_frames = 0
+                return True, self.last_box
+
+        self.lost_frames += 1
+        return False, self.last_box # Target lost in this frame
 
 # --- TRACKER FACTORY ---
 def create_tracker(name):
-    if name == "YOLOv8-BoT":
-        return YOLOTrackerWrapper(tracker_config="botsort.yaml")
-    elif name == "YOLOv8-Byte":
-        return YOLOTrackerWrapper(tracker_config="bytetrack.yaml")
-    else:
-        return TRACKERS[name]()
+    match name:
+        case "YOLOv8-BoT":
+            return YOLOTrackerWrapper(tracker_config="botsort.yaml")
+        case "YOLOv8-Byte":
+            return YOLOTrackerWrapper(tracker_config="bytetrack.yaml")
+        case "YOLOv11-BoT":
+            return YOLOTrackerWrapper(model_path="yolo11n.pt", tracker_config="botsort.yaml")
+        case "YOLOv11-Byte":
+            return YOLOTrackerWrapper(model_path="yolo11n.pt", tracker_config="bytetrack.yaml")
+        case _:
+            return TRACKERS[name]()
 
 TRACKERS = {
     "MIL": cv2.legacy.TrackerMIL_create,
@@ -264,11 +304,11 @@ if __name__ == "__main__":
     # skonczylo sie na car2 robic, trzeba dokonczyc od car3 zbieranie wynikow
 
     # Define which trackers and sequences to run
-    trackers_to_test = ["YOLOv8-BoT", "YOLOv8-Byte"] 
+    trackers_to_test = ["YOLOv8-BoT", "YOLOv8-Byte", "YOLOv11-BoT", "YOLOv11-Byte"] 
     # trackers_to_test = ["BOOSTING", "MEDIANFLOW", "MIL", "TLD"]
     
     # sequences_to_test = ["car3", "car6", "car8", "person2", "person3", "truck1", "truck2", "truck3", "wakeboard1", "wakeboard2", "wakeboard3"] # Add more here, e.g. ["car1", "person1"]
-    sequences_to_test = ["truck3"] # Add more here, e.g. ["car1", "person1"]
+    sequences_to_test = ["boat1"] # Add more here, e.g. ["car1", "person1"]
     
     all_frame_results = []
     summary_results = []
