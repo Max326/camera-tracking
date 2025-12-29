@@ -1,0 +1,2 @@
+Tracker,Sequence,Avg FPS,Valid FPS,Avg IoU,Precision (CLE < 20px),Success Rate (IoU > 0.5),AUC
+YOLOv11-Byte,bike3,88.1068,94.2724,0.0222,0.2639,0.0,0.0233

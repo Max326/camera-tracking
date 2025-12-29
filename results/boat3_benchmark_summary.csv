@@ -1,0 +1,4 @@
+Tracker,Sequence,Avg FPS,Valid FPS,Avg IoU,Precision (CLE < 20px),Success Rate (IoU > 0.5),AUC
+Hybrid-YOLO-KCF,boat3,157.8543,157.8543,0.8661,1.0,1.0,0.8626
+YOLOv8-Byte,boat3,117.6961,117.6961,0.8894,1.0,1.0,0.8856
+YOLOv11-Byte,boat3,94.7867,94.7867,0.8778,1.0,1.0,0.874

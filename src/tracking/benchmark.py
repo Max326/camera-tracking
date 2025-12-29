@@ -123,26 +123,50 @@ class YOLOTrackerWrapper:
         return False, self.last_box # Target lost in this frame
     
 class HybridTrackerWrapper:
-    def __init__(self, model_path='yolov8n.pt', detection_interval=10):
+    def __init__(self, model_path='yolov8n.pt', detection_interval=10, tracker="KCF"):
         self.model = YOLO(model_path)
-        self.kcf = cv2.legacy.TrackerKCF_create()
+        self.model(np.zeros((640, 640, 3), dtype=np.uint8), verbose=False) # model warm-up
+
+        self.tracker_name = tracker
+        self.tracker = TRACKERS[tracker]()
         self.detection_interval = detection_interval
         self.frame_count = 0
         self.last_box = None
         self.is_tracking = False
+        self.target_class = None
 
     def init(self, frame, box):
         self.last_box = box
-        self.kcf.init(frame, box)
+        self.tracker.init(frame, box)
         self.is_tracking = True
         self.frame_count = 0
+
+        results = self.model(frame, verbose=False)
+        if results and results[0].boxes:
+            boxes = results[0].boxes.xywh.cpu().numpy()
+            classes = results[0].boxes.cls.cpu().numpy()
+            
+            best_iou = 0
+            for i, det_box in enumerate(boxes):
+                # Convert center-xywh to top-left-xywh
+                current_box = (det_box[0] - det_box[2]/2, det_box[1] - det_box[3]/2, det_box[2], det_box[3])
+                iou = calculate_iou(box, current_box)
+                
+                # If the initial box overlaps significantly with a detection, lock onto that class
+                if iou > 0.5 and iou > best_iou:
+                    best_iou = iou
+                    self.target_class = classes[i]
+        
+        if self.target_class is not None:
+            print(f"Initialized tracking for class ID: {int(self.target_class)}")
+            
         return True
 
     def update(self, frame):
         self.frame_count += 1
         
         # 1. Always update KCF (Fast)
-        success, box = self.kcf.update(frame)
+        success, box = self.tracker.update(frame)
         
         # 2. Periodically correct with YOLO (Slow but accurate)
         if self.frame_count % self.detection_interval == 0:
@@ -154,13 +178,19 @@ class HybridTrackerWrapper:
             
             if results and results[0].boxes:
                 boxes = results[0].boxes.xywh.cpu().numpy()
-                for det_box in boxes:
+                classes = results[0].boxes.cls.cpu().numpy()
+
+                for i, det_box in enumerate(boxes):
+                    # CLASS CHECK: Ignore detections that don't match our target class
+                    if self.target_class is not None and classes[i] != self.target_class:
+                        continue
+
                     # Convert center-xywh to top-left-xywh
                     current_box = (det_box[0] - det_box[2]/2, det_box[1] - det_box[3]/2, det_box[2], det_box[3])
                     iou = calculate_iou(box, current_box)
                     
                     # If we find a detection that overlaps reasonably, trust the detector
-                    if iou > 0.1: 
+                    if iou > 0.0: 
                         if iou > best_iou:
                             best_iou = iou
                             best_box = current_box
@@ -168,8 +198,8 @@ class HybridTrackerWrapper:
             # If detector found the object, re-initialize KCF to correct drift
             if best_box is not None:
                 # print(f"Correction applied at frame {self.frame_count}")
-                self.kcf = cv2.legacy.TrackerKCF_create()
-                self.kcf.init(frame, tuple(map(int, best_box)))
+                self.tracker = TRACKERS[self.tracker_name]()
+                self.tracker.init(frame, tuple(map(int, best_box)))
                 return True, best_box
 
         return success, box
@@ -187,8 +217,12 @@ def create_tracker(name):
             return YOLOTrackerWrapper(model_path="yolo11n.pt", tracker_config="bytetrack.yaml")
         case "RTDETR-BoT":
             return YOLOTrackerWrapper(model_path="rtdetr-l.pt", tracker_config="botsort.yaml")
-        case "Hybrid-YOLO-KCF":
-            return HybridTrackerWrapper(model_path='yolov8n.pt', detection_interval=60)
+        case "YOLOv8+KCF":
+            return HybridTrackerWrapper(model_path='yolov8n.pt', detection_interval=15, tracker="KCF")
+        case "YOLOv8+MOSSE":
+            return HybridTrackerWrapper(model_path='yolov8n.pt', detection_interval=15, tracker="MOSSE")
+        case "YOLOv8+CSRT":
+            return HybridTrackerWrapper(model_path='yolov8n.pt', detection_interval=60, tracker="CSRT")
         case _:
             return TRACKERS[name]()
 
@@ -200,7 +234,6 @@ TRACKERS = {
     "TLD": cv2.legacy.TrackerTLD_create,
     "BOOSTING": cv2.legacy.TrackerBoosting_create,
     "MEDIANFLOW": cv2.legacy.TrackerMedianFlow_create,
-    # YOLO trackers are handled in create_tracker factory
 }
 
 def load_ground_truth(anno_file):
@@ -266,7 +299,7 @@ def run_benchmark(seq_name, tracker_name):
 
     # 2. Initialize Tracker
     # tracker = TRACKERS[tracker_name]() # OLD
-    tracker = create_tracker(tracker_name) # NEW
+    tracker = create_tracker(tracker_name)
     
     first_frame = cv2.imread(images[0])
     first_box_float = gt_boxes[0]
@@ -365,12 +398,13 @@ if __name__ == "__main__":
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     # Define which trackers and sequences to run
-    trackers_to_test = ["Hybrid-YOLO-KCF", "YOLOv8-Byte", "YOLOv11-Byte"]
+    trackers_to_test = ["YOLOv8+CSRT", "YOLOv8+MOSSE", "YOLOv8+KCF"]
+    # trackers_to_test = ["CSRT", "YOLOv8+CSRT", "MOSSE", "KCF", "YOLOv8+MOSSE", "YOLOv8+KCF", "YOLOv8-Byte", "YOLOv11-Byte"]
     # trackers_to_test = ["RTDETR-BoT", "YOLOv8-BoT", "YOLOv8-Byte", "YOLOv11-BoT", "YOLOv11-Byte"] 
     # trackers_to_test = ["BOOSTING", "MEDIANFLOW", "MIL", "TLD"]
     
-    # sequences_to_test = ["car3", "car6", "car8", "person2", "person3", "truck1", "truck2", "truck3", "wakeboard1", "wakeboard2", "wakeboard3"] # Add more here, e.g. ["car1", "person1"]
-    sequences_to_test = ["boat3"] # Add more here, e.g. ["car1", "person1"]
+    # sequences_to_test = ["car1", "car2", "car3", "car6", "car8", "person2", "person3", "truck1", "truck2", "truck3", "wakeboard1", "wakeboard2", "wakeboard3"]
+    sequences_to_test = ["bike1"] # Add more here, e.g. ["car1", "person1"]
     
     all_frame_results = []
     summary_results = []
@@ -400,6 +434,19 @@ if __name__ == "__main__":
             summary_df = summary_df.round(4)
 
             summary_path = os.path.join(OUTPUT_DIR, f"{seq}_benchmark_summary.csv")
+            
+            if os.path.exists(summary_path):
+                try:
+                    existing_df = pd.read_csv(summary_path)
+                    # Filter out rows for trackers that are in the current run (overwrite logic)
+                    current_trackers = summary_df['Tracker'].unique()
+                    existing_df = existing_df[~existing_df['Tracker'].isin(current_trackers)]
+                    # Combine old and new
+                    summary_df = pd.concat([existing_df, summary_df], ignore_index=True)
+                    print(f"Merged with existing results in {summary_path}")
+                except Exception as e:
+                    print(f"Error reading existing summary: {e}. Overwriting.")
+
             summary_df.to_csv(summary_path, index=False)
             print(f"\nSummary for {seq} saved to: {summary_path}")
 
