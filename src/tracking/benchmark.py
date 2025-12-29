@@ -106,7 +106,7 @@ class YOLOTrackerWrapper:
                 current_box = (det_box[0] - det_box[2]/2, det_box[1] - det_box[3]/2, det_box[2], det_box[3])
                 
                 iou = calculate_iou(last_box_xywh, current_box)
-                if iou > 0.5: # Strict threshold to avoid jumping to wrong object
+                if iou > 0.2: # Strict threshold to avoid jumping to wrong object
                     if iou > best_iou:
                         best_iou = iou
                         best_new_id = ids[i]
@@ -121,6 +121,58 @@ class YOLOTrackerWrapper:
 
         self.lost_frames += 1
         return False, self.last_box # Target lost in this frame
+    
+class HybridTrackerWrapper:
+    def __init__(self, model_path='yolov8n.pt', detection_interval=10):
+        self.model = YOLO(model_path)
+        self.kcf = cv2.legacy.TrackerKCF_create()
+        self.detection_interval = detection_interval
+        self.frame_count = 0
+        self.last_box = None
+        self.is_tracking = False
+
+    def init(self, frame, box):
+        self.last_box = box
+        self.kcf.init(frame, box)
+        self.is_tracking = True
+        self.frame_count = 0
+        return True
+
+    def update(self, frame):
+        self.frame_count += 1
+        
+        # 1. Always update KCF (Fast)
+        success, box = self.kcf.update(frame)
+        
+        # 2. Periodically correct with YOLO (Slow but accurate)
+        if self.frame_count % self.detection_interval == 0:
+            results = self.model(frame, verbose=False)
+            
+            # Find detection with highest IoU with current KCF box
+            best_iou = 0
+            best_box = None
+            
+            if results and results[0].boxes:
+                boxes = results[0].boxes.xywh.cpu().numpy()
+                for det_box in boxes:
+                    # Convert center-xywh to top-left-xywh
+                    current_box = (det_box[0] - det_box[2]/2, det_box[1] - det_box[3]/2, det_box[2], det_box[3])
+                    iou = calculate_iou(box, current_box)
+                    
+                    # If we find a detection that overlaps reasonably, trust the detector
+                    if iou > 0.1: 
+                        if iou > best_iou:
+                            best_iou = iou
+                            best_box = current_box
+
+            # If detector found the object, re-initialize KCF to correct drift
+            if best_box is not None:
+                # print(f"Correction applied at frame {self.frame_count}")
+                self.kcf = cv2.legacy.TrackerKCF_create()
+                self.kcf.init(frame, tuple(map(int, best_box)))
+                return True, best_box
+
+        return success, box
 
 # --- TRACKER FACTORY ---
 def create_tracker(name):
@@ -133,6 +185,10 @@ def create_tracker(name):
             return YOLOTrackerWrapper(model_path="yolo11n.pt", tracker_config="botsort.yaml")
         case "YOLOv11-Byte":
             return YOLOTrackerWrapper(model_path="yolo11n.pt", tracker_config="bytetrack.yaml")
+        case "RTDETR-BoT":
+            return YOLOTrackerWrapper(model_path="rtdetr-l.pt", tracker_config="botsort.yaml")
+        case "Hybrid-YOLO-KCF":
+            return HybridTrackerWrapper(model_path='yolov8n.pt', detection_interval=60)
         case _:
             return TRACKERS[name]()
 
@@ -279,36 +335,42 @@ def run_benchmark(seq_name, tracker_name):
     return pd.DataFrame(frame_data)
 
 def calculate_summary(df):
-    """Calculates SOT Metrics: Precision (CLE < 20px) and Success (IoU > 0.5)"""
-    # Filter out occluded frames where Error is -1
+    """Calculates SOT Metrics: Precision (CLE < 20px), Success (IoU > 0.5), and AUC"""
     valid_df = df[df['CenterError'] != -1]
-    
-    # Calculate FPS only for frames where the tracker actually has overlap (IoU > 0)
-    # This filters out the "sky tracking" spikes.
     successful_frames = df[df['IoU'] > 0]
     valid_fps = successful_frames['FPS'].mean() if not successful_frames.empty else 0.0
     
+    # Calculate success rate at 100 thresholds from 0 to 1
+    thresholds = np.linspace(0, 1, 101)
+    success_rates = []
+    for thresh in thresholds:
+        success_rate = (df['IoU'] > thresh).mean()
+        success_rates.append(success_rate)
+    auc = np.mean(success_rates) # Approximate Area Under Curve
+    # --------------------------
+
     summary = {
         "Tracker": df['Tracker'].iloc[0],
         "Sequence": df['Sequence'].iloc[0],
         "Avg FPS": df['FPS'].mean(),
-        "Valid FPS": valid_fps, # where IoU > 0
+        "Valid FPS": valid_fps,
         "Avg IoU": df['IoU'].mean(),
-        "Precision (CLE < 20px)": (valid_df['CenterError'] < 20).mean(), # % of frames where error < 20px
-        "Success Rate (IoU > 0.5)": (df['IoU'] > 0.5).mean()
+        "Precision (CLE < 20px)": (valid_df['CenterError'] < 20).mean(),
+        "Success Rate (IoU > 0.5)": (df['IoU'] > 0.5).mean(),
+        "AUC": auc
     }
     return summary
 
 if __name__ == "__main__":
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    # skonczylo sie na car2 robic, trzeba dokonczyc od car3 zbieranie wynikow
 
     # Define which trackers and sequences to run
-    trackers_to_test = ["YOLOv8-BoT", "YOLOv8-Byte", "YOLOv11-BoT", "YOLOv11-Byte"] 
+    trackers_to_test = ["Hybrid-YOLO-KCF", "YOLOv8-Byte", "YOLOv11-Byte"]
+    # trackers_to_test = ["RTDETR-BoT", "YOLOv8-BoT", "YOLOv8-Byte", "YOLOv11-BoT", "YOLOv11-Byte"] 
     # trackers_to_test = ["BOOSTING", "MEDIANFLOW", "MIL", "TLD"]
     
     # sequences_to_test = ["car3", "car6", "car8", "person2", "person3", "truck1", "truck2", "truck3", "wakeboard1", "wakeboard2", "wakeboard3"] # Add more here, e.g. ["car1", "person1"]
-    sequences_to_test = ["boat1"] # Add more here, e.g. ["car1", "person1"]
+    sequences_to_test = ["boat3"] # Add more here, e.g. ["car1", "person1"]
     
     all_frame_results = []
     summary_results = []

@@ -3,6 +3,9 @@ data/photos/
 data/dataset/
 data/
 
+# NN files
+*.pt
+
 # venv
 yolov8-env/
 
