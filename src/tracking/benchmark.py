@@ -168,13 +168,17 @@ class HybridTrackerWrapper:
         # 1. Always update KCF (Fast)
         success, box = self.tracker.update(frame)
         
-        # 2. Periodically correct with YOLO (Slow but accurate)
-        if self.frame_count % self.detection_interval == 0: # TODO: recovery mode
+        if success:
+            self.last_box = box
+        
+        # 2. Run YOLO if:
+        #    a) It's time for periodic correction
+        #    b) Tracking has failed (Recovery Mode)
+        if self.frame_count % self.detection_interval == 0 or not success:
             results = self.model(frame, verbose=False)
             
-            # Find detection with highest IoU with current KCF box
-            best_iou = 0
-            best_box = None
+            best_match_box = None
+            best_metric = 0 if success else float('inf') # IoU (max) or Distance (min)
             
             if results and results[0].boxes:
                 boxes = results[0].boxes.xywh.cpu().numpy()
@@ -187,20 +191,32 @@ class HybridTrackerWrapper:
 
                     # Convert center-xywh to top-left-xywh
                     current_box = (det_box[0] - det_box[2]/2, det_box[1] - det_box[3]/2, det_box[2], det_box[3])
-                    iou = calculate_iou(box, current_box)
                     
-                    # If we find a detection that overlaps reasonably, trust the detector
-                    if iou > 0.0: 
-                        if iou > best_iou:
-                            best_iou = iou
-                            best_box = current_box
+                    if success:
+                        # CORRECTION: Use IoU
+                        iou = calculate_iou(box, current_box)
+                        if iou > 0.0 and iou > best_metric:
+                            best_metric = iou
+                            best_match_box = current_box
+                    else:
+                        # RECOVERY: Use Distance to last known position
+                        if self.last_box:
+                            lx, ly, lw, lh = self.last_box
+                            cx, cy, cw, ch = current_box
+                            l_center = (lx + lw/2, ly + lh/2)
+                            c_center = (cx + cw/2, cy + ch/2)
+                            dist = math.sqrt((l_center[0] - c_center[0])**2 + (l_center[1] - c_center[1])**2)
+                            
+                            if dist < best_metric:
+                                best_metric = dist
+                                best_match_box = current_box
 
-            # If detector found the object, re-initialize KCF to correct drift
-            if best_box is not None:
-                # print(f"Correction applied at frame {self.frame_count}")
+            # If detector found the object, re-initialize KCF
+            if best_match_box is not None:
+                # print(f"Correction/Recovery applied at frame {self.frame_count}")
                 self.tracker = TRACKERS[self.tracker_name]()
-                self.tracker.init(frame, tuple(map(int, best_box)))
-                return True, best_box
+                self.tracker.init(frame, tuple(map(int, best_match_box)))
+                return True, best_match_box
 
         return success, box
 
@@ -398,15 +414,14 @@ if __name__ == "__main__":
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     # Define which trackers and sequences to run
-    trackers_to_test = ["YOLOv11-BoT", "YOLOv8-BoT"]
-    # trackers_to_test = ["CSRT", "YOLOv8+CSRT", "MOSSE", "KCF", "YOLOv8+MOSSE", "YOLOv8+KCF", "YOLOv8-Byte", "YOLOv11-Byte"]
+    trackers_to_test = ["YOLOv8+CSRT", "YOLOv8+MOSSE", "YOLOv8+KCF"]
     # trackers_to_test = ["RTDETR-BoT", "YOLOv8-BoT", "YOLOv8-Byte", "YOLOv11-BoT", "YOLOv11-Byte"] 
     # trackers_to_test = ["BOOSTING", "MEDIANFLOW", "MIL", "TLD"]
     
-    sequences_to_test = ["car18"]
-    # sequences_to_test = ["boat1", "boat2", "boat3", "car1", "car2", "car3", "car4", "car5", "car6", "car7", 
-                        #  "car8", "car16", "car17", "person2", "person3", "truck1", "truck2", "truck3", 
-                        #  "wakeboard1", "wakeboard2", "wakeboard3"]
+    # sequences_to_test = ["car18"]
+    sequences_to_test = ["bike1", "bike3", "boat1", "boat2", "boat3", "car1", "car2", "car3", "car4", "car5", "car6", "car7", 
+                         "car8", "car16", "car17", "person2", "person3", "truck1", "truck2", "truck3", 
+                         "wakeboard1", "wakeboard2", "wakeboard3"]
     
     all_frame_results = []
     summary_results = []
