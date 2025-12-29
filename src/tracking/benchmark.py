@@ -169,7 +169,7 @@ class HybridTrackerWrapper:
         success, box = self.tracker.update(frame)
         
         # 2. Periodically correct with YOLO (Slow but accurate)
-        if self.frame_count % self.detection_interval == 0:
+        if self.frame_count % self.detection_interval == 0: # TODO: recovery mode
             results = self.model(frame, verbose=False)
             
             # Find detection with highest IoU with current KCF box
@@ -398,13 +398,15 @@ if __name__ == "__main__":
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     # Define which trackers and sequences to run
-    trackers_to_test = ["YOLOv8+CSRT", "YOLOv8+MOSSE", "YOLOv8+KCF"]
+    trackers_to_test = ["YOLOv11-BoT", "YOLOv8-BoT"]
     # trackers_to_test = ["CSRT", "YOLOv8+CSRT", "MOSSE", "KCF", "YOLOv8+MOSSE", "YOLOv8+KCF", "YOLOv8-Byte", "YOLOv11-Byte"]
     # trackers_to_test = ["RTDETR-BoT", "YOLOv8-BoT", "YOLOv8-Byte", "YOLOv11-BoT", "YOLOv11-Byte"] 
     # trackers_to_test = ["BOOSTING", "MEDIANFLOW", "MIL", "TLD"]
     
-    # sequences_to_test = ["car1", "car2", "car3", "car6", "car8", "person2", "person3", "truck1", "truck2", "truck3", "wakeboard1", "wakeboard2", "wakeboard3"]
-    sequences_to_test = ["bike1"] # Add more here, e.g. ["car1", "person1"]
+    sequences_to_test = ["car18"]
+    # sequences_to_test = ["boat1", "boat2", "boat3", "car1", "car2", "car3", "car4", "car5", "car6", "car7", 
+                        #  "car8", "car16", "car17", "person2", "person3", "truck1", "truck2", "truck3", 
+                        #  "wakeboard1", "wakeboard2", "wakeboard3"]
     
     all_frame_results = []
     summary_results = []
@@ -446,6 +448,8 @@ if __name__ == "__main__":
                     print(f"Merged with existing results in {summary_path}")
                 except Exception as e:
                     print(f"Error reading existing summary: {e}. Overwriting.")
+
+            summary_df = summary_df.sort_values(by="Precision (CLE < 20px)", ascending=False)
 
             summary_df.to_csv(summary_path, index=False)
             print(f"\nSummary for {seq} saved to: {summary_path}")
