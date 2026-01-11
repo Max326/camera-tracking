@@ -423,8 +423,8 @@ if __name__ == "__main__":
     # trackers_to_test = ["YOLOv11+CSRT", "YOLOv11+MOSSE", "YOLOv11+KCF", "YOLOv8+CSRT", "YOLOv8+MOSSE", "YOLOv8+KCF",
     #                     "BOOSTING", "MEDIANFLOW", "MIL", "TLD", "CSRT", "KCF", "MOSSE", "YOLOv11-Byte", "YOLOv8-Byte", 
     #                     "YOLOv11-BoT", "YOLOv8-BoT"]
-    trackers_to_test = ["CSRT", "KCF", "MOSSE", "MIL", "MEDIANFLOW", "BOOSTING", "TLD"]
-    # trackers_to_test = ["RTDETR-BoT", "YOLOv8-BoT", "YOLOv8-Byte", "YOLOv11-BoT", "YOLOv11-Byte"] 
+    # trackers_to_test = ["CSRT", "KCF", "MOSSE", "MIL", "MEDIANFLOW", "BOOSTING", "TLD"]
+    trackers_to_test = ["YOLOv8-BoT", "YOLOv8-Byte", "YOLOv11-BoT", "YOLOv11-Byte"] 
     # trackers_to_test = ["BOOSTING", "MEDIANFLOW", "MIL", "TLD"]
     
     # sequences_to_test = ["uav1"]
