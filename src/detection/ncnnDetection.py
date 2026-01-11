@@ -3,13 +3,16 @@ import cv2
 import time
 
 # Załaduj model, podając ścieżkę do FOLDERU NCNN
-ncnn_model = YOLO('runs/detect/train4/weights/best_ncnn_model')
+# ncnn_model = YOLO('runs/detect/train4/weights/best_ncnn_model')
+ncnn_model = YOLO('src/detection/yolo11n_ncnn_model')
 
 # Użyj kamery lub pliku wideo
 video_path = 'data/videos/VID_20250813_122520.mp4'
 
 # Open the video file
 cap = cv2.VideoCapture(video_path)
+
+# cap = cv2.VideoCapture(0) # Użyj kamery
 
 frame_count = 0
 start_time = time.time()

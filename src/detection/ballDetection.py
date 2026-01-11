@@ -3,7 +3,8 @@ import cv2
 import time
 
 # Load the trained YOLOv8 model
-model = YOLO('runs/detect/train4/weights/best.pt')
+# model = YOLO('runs/detect/train4/weights/best.pt')
+model = YOLO('yolo11n.pt')
 
 # Path to the video file
 video_path = 'data/videos/VID_20250813_122520.mp4'
