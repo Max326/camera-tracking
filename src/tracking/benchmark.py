@@ -15,11 +15,11 @@ SAVE_DETAILED_LOGS = False
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..'))
-DATA_ROOT = os.path.join(PROJECT_ROOT, "data", "UAV123")
+DATA_ROOT = os.path.join(PROJECT_ROOT, "data/datset", "UAV123")
 ANNO_PATH_UAV123 = os.path.join(DATA_ROOT, "anno", "UAV123")
 ANNO_PATH_UAV20L = os.path.join(DATA_ROOT, "anno", "UAV20L")
 SEQ_PATH  = os.path.join(DATA_ROOT, "data_seq", "UAV123")
-OUTPUT_DIR = os.path.join(PROJECT_ROOT, "results")
+OUTPUT_DIR = os.path.join(PROJECT_ROOT, "results-rpi")
 
 # --- YOLO WRAPPER ---
 class YOLOTrackerWrapper:
@@ -233,6 +233,12 @@ def create_tracker(name):
             return YOLOTrackerWrapper(model_path="yolo11n.pt", tracker_config="bytetrack.yaml")
         case "RTDETR-BoT":
             return YOLOTrackerWrapper(model_path="rtdetr-l.pt", tracker_config="botsort.yaml")
+        case "YOLOv8+KCF":
+            return HybridTrackerWrapper(model_path='yolov8n.pt', detection_interval=15, tracker="KCF")
+        case "YOLOv8+MOSSE":
+            return HybridTrackerWrapper(model_path='yolov8n.pt', detection_interval=15, tracker="MOSSE")
+        case "YOLOv8+CSRT":
+            return HybridTrackerWrapper(model_path='yolov8n.pt', detection_interval=60, tracker="CSRT")
         case "YOLOv11+KCF":
             return HybridTrackerWrapper(model_path='yolo11n.pt', detection_interval=15, tracker="KCF")
         case "YOLOv11+MOSSE":
@@ -244,7 +250,7 @@ def create_tracker(name):
 
 TRACKERS = {
     "MIL": cv2.legacy.TrackerMIL_create,
-    "CSRT": cv2.TrackerCSRT_create,
+    "CSRT": cv2.legacy.TrackerCSRT_create,
     "KCF": cv2.legacy.TrackerKCF_create,
     "MOSSE": cv2.legacy.TrackerMOSSE_create,
     "TLD": cv2.legacy.TrackerTLD_create,
@@ -414,7 +420,10 @@ if __name__ == "__main__":
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     # Define which trackers and sequences to run
-    trackers_to_test = ["YOLOv11+CSRT", "YOLOv11+MOSSE", "YOLOv11+KCF"]
+    # trackers_to_test = ["YOLOv11+CSRT", "YOLOv11+MOSSE", "YOLOv11+KCF", "YOLOv8+CSRT", "YOLOv8+MOSSE", "YOLOv8+KCF",
+    #                     "BOOSTING", "MEDIANFLOW", "MIL", "TLD", "CSRT", "KCF", "MOSSE", "YOLOv11-Byte", "YOLOv8-Byte", 
+    #                     "YOLOv11-BoT", "YOLOv8-BoT"]
+    trackers_to_test = ["CSRT", "KCF", "MOSSE", "MIL", "MEDIANFLOW", "BOOSTING", "TLD"]
     # trackers_to_test = ["RTDETR-BoT", "YOLOv8-BoT", "YOLOv8-Byte", "YOLOv11-BoT", "YOLOv11-Byte"] 
     # trackers_to_test = ["BOOSTING", "MEDIANFLOW", "MIL", "TLD"]
     

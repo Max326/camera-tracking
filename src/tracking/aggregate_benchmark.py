@@ -6,7 +6,7 @@ def aggregate_results():
     # Define paths
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
     PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..'))
-    RESULTS_DIR = os.path.join(PROJECT_ROOT, "results")
+    RESULTS_DIR = os.path.join(PROJECT_ROOT, "results-rpi")
     
     # Find all summary files matching the pattern
     pattern = os.path.join(RESULTS_DIR, "*_benchmark_summary.csv")
