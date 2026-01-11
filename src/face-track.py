@@ -41,7 +41,14 @@ while True:
     if len(faces) > 0:
         (x, y, w, h) = faces[0]
         face_center_y = y + h // 2  # Środek twarzy w osi Y
+        # face_center_x = x + w // 2  # Środek twarzy w osi X
         frame_height = frame.shape[0]
+
+        # Narysuj prostokąt wokół wykrytej twarzy
+        cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+
+        # Zaznacz środek twarzy
+        # cv2.circle(frame, (face_center_x, face_center_y), 5, (0, 255, 0), -1)
 
         # Obliczenie błędu (odchylenia od setpoint)
         setpoint = frame_height // 2

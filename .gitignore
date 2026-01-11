@@ -4,6 +4,7 @@ data/dataset/
 
 # venv
 yolov8-env/
+yolov8-env-rpi/
 
 # the weights file is too big
 yolo/yolov4.weights
