@@ -244,18 +244,18 @@ def create_tracker(name):
             return YOLOTrackerWrapper(model_path="yolo11n_ncnn_model", tracker_config="bytetrack.yaml")
         case "RTDETR-BoT":
             return YOLOTrackerWrapper(model_path="rtdetr-l.pt", tracker_config="botsort.yaml")
-        case "YOLOv8+KCF":
-            return HybridTrackerWrapper(model_path='yolov8n.pt', detection_interval=15, tracker="KCF")
-        case "YOLOv8+MOSSE":
-            return HybridTrackerWrapper(model_path='yolov8n.pt', detection_interval=15, tracker="MOSSE")
-        case "YOLOv8+CSRT":
-            return HybridTrackerWrapper(model_path='yolov8n.pt', detection_interval=60, tracker="CSRT")
-        case "YOLOv11+KCF":
-            return HybridTrackerWrapper(model_path='yolo11n.pt', detection_interval=15, tracker="KCF")
-        case "YOLOv11+MOSSE":
-            return HybridTrackerWrapper(model_path='yolo11n.pt', detection_interval=15, tracker="MOSSE")
-        case "YOLOv11+CSRT":
-            return HybridTrackerWrapper(model_path='yolo11n.pt', detection_interval=60, tracker="CSRT")
+        case "YOLOv8-NCNN+KCF":
+            return HybridTrackerWrapper(model_path='yolov8n_ncnn_model', detection_interval=15, tracker="KCF")
+        case "YOLOv8-NCNN+MOSSE":
+            return HybridTrackerWrapper(model_path='yolov8n_ncnn_model', detection_interval=15, tracker="MOSSE")
+        case "YOLOv8-NCNN+CSRT":
+            return HybridTrackerWrapper(model_path='yolov8n_ncnn_model', detection_interval=60, tracker="CSRT")
+        case "YOLOv11-NCNN+KCF":
+            return HybridTrackerWrapper(model_path='yolo11n_ncnn_model', detection_interval=15, tracker="KCF")
+        case "YOLOv11-NCNN+MOSSE":
+            return HybridTrackerWrapper(model_path='yolo11n_ncnn_model', detection_interval=15, tracker="MOSSE")
+        case "YOLOv11-NCNN+CSRT":
+            return HybridTrackerWrapper(model_path='yolo11n_ncnn_model', detection_interval=60, tracker="CSRT")
         case _:
             return TRACKERS[name]()
 
@@ -431,17 +431,17 @@ if __name__ == "__main__":
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     # Define which trackers and sequences to run
-    # trackers_to_test = ["YOLOv11+CSRT", "YOLOv11+MOSSE", "YOLOv11+KCF", "YOLOv8+CSRT", "YOLOv8+MOSSE", "YOLOv8+KCF",
+    trackers_to_test = ["YOLOv11-NCNN+CSRT", "YOLOv11-NCNN+MOSSE", "YOLOv11-NCNN+KCF", "YOLOv8-NCNN+CSRT", "YOLOv8-NCNN+MOSSE", "YOLOv8-NCNN+KCF"]
     #                     "BOOSTING", "MEDIANFLOW", "MIL", "TLD", "CSRT", "KCF", "MOSSE", "YOLOv11-Byte", "YOLOv8-Byte", 
     #                     "YOLOv11-BoT", "YOLOv8-BoT"]
     # trackers_to_test = ["CSRT", "KCF", "MOSSE", "MIL", "MEDIANFLOW", "BOOSTING", "TLD"]
-    trackers_to_test = ["YOLOv8-NCNN-BoT", "YOLOv8-NCNN-Byte", "YOLOv11-NCNN-Byte", "YOLOv11-NCNN-BoT"] 
+    # trackers_to_test = ["YOLOv8-NCNN-BoT", "YOLOv8-NCNN-Byte", "YOLOv11-NCNN-Byte", "YOLOv11-NCNN-BoT"] 
     # trackers_to_test = ["BOOSTING", "MEDIANFLOW", "MIL", "TLD"]
     
-    # sequences_to_test = ["uav1"]
-    sequences_to_test = ["car5", "car6", "car7", 
-                         "car8", "car16", "car17", "car18", "person2", "person3", "truck1", "truck2", "truck3", 
-                         "wakeboard1", "wakeboard2", "wakeboard3"]
+    sequences_to_test = ["bike1", "bike3", "boat1", "boat2", "boat3", "car1", "car2", "car3", "car4"]
+    # sequences_to_test = ["car5", "car6", "car7", 
+    #                      "car8", "car16", "car17", "car18", "person2", "person3", "truck1", "truck2", "truck3", 
+    #                      "wakeboard1", "wakeboard2", "wakeboard3"]
     
     all_frame_results = []
     summary_results = []
