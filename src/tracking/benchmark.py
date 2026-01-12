@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 import glob
 import math
+import matplotlib
+matplotlib.use('Agg') # Set backend to non-interactive to avoid thread/interactivity crashes
 import matplotlib.pyplot as plt
 from ultralytics import YOLO
 
@@ -24,7 +26,8 @@ OUTPUT_DIR = os.path.join(PROJECT_ROOT, "results-rpi")
 # --- YOLO WRAPPER ---
 class YOLOTrackerWrapper:
     def __init__(self, model_path='yolov8n.pt', tracker_config='botsort.yaml'):
-        self.model = YOLO(model_path)
+        # Explicitly set task='detect' to suppress warnings for NCNN/TFLite models
+        self.model = YOLO(model_path, task='detect')
         self.tracker_config = tracker_config
         self.target_id = None
         self.last_box = None
@@ -124,7 +127,7 @@ class YOLOTrackerWrapper:
     
 class HybridTrackerWrapper:
     def __init__(self, model_path='yolov11n.pt', detection_interval=10, tracker="KCF"):
-        self.model = YOLO(model_path)
+        self.model = YOLO(model_path, task='detect')
         self.model(np.zeros((640, 640, 3), dtype=np.uint8), verbose=False) # model warm-up
 
         self.tracker_name = tracker
@@ -231,6 +234,14 @@ def create_tracker(name):
             return YOLOTrackerWrapper(model_path="yolo11n.pt", tracker_config="botsort.yaml")
         case "YOLOv11-Byte":
             return YOLOTrackerWrapper(model_path="yolo11n.pt", tracker_config="bytetrack.yaml")
+        case "YOLOv8-NCNN-BoT":
+            return YOLOTrackerWrapper(model_path="yolov8n_ncnn_model", tracker_config="botsort.yaml")
+        case "YOLOv8-NCNN-Byte":
+            return YOLOTrackerWrapper(model_path="yolov8n_ncnn_model", tracker_config="bytetrack.yaml")
+        case "YOLOv11-NCNN-BoT":
+            return YOLOTrackerWrapper(model_path="yolo11n_ncnn_model", tracker_config="botsort.yaml")
+        case "YOLOv11-NCNN-Byte":
+            return YOLOTrackerWrapper(model_path="yolo11n_ncnn_model", tracker_config="bytetrack.yaml")
         case "RTDETR-BoT":
             return YOLOTrackerWrapper(model_path="rtdetr-l.pt", tracker_config="botsort.yaml")
         case "YOLOv8+KCF":
@@ -424,11 +435,11 @@ if __name__ == "__main__":
     #                     "BOOSTING", "MEDIANFLOW", "MIL", "TLD", "CSRT", "KCF", "MOSSE", "YOLOv11-Byte", "YOLOv8-Byte", 
     #                     "YOLOv11-BoT", "YOLOv8-BoT"]
     # trackers_to_test = ["CSRT", "KCF", "MOSSE", "MIL", "MEDIANFLOW", "BOOSTING", "TLD"]
-    trackers_to_test = ["YOLOv8-BoT", "YOLOv8-Byte", "YOLOv11-BoT", "YOLOv11-Byte"] 
+    trackers_to_test = ["YOLOv8-NCNN-BoT", "YOLOv8-NCNN-Byte", "YOLOv11-NCNN-Byte", "YOLOv11-NCNN-BoT"] 
     # trackers_to_test = ["BOOSTING", "MEDIANFLOW", "MIL", "TLD"]
     
     # sequences_to_test = ["uav1"]
-    sequences_to_test = ["bike1", "bike3", "boat1", "boat2", "boat3", "car1", "car2", "car3", "car4", "car5", "car6", "car7", 
+    sequences_to_test = ["car5", "car6", "car7", 
                          "car8", "car16", "car17", "car18", "person2", "person3", "truck1", "truck2", "truck3", 
                          "wakeboard1", "wakeboard2", "wakeboard3"]
     
