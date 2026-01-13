@@ -182,6 +182,7 @@ class HybridTrackerWrapper:
             
             best_match_box = None
             best_metric = 0 if success else float('inf') # IoU (max) or Distance (min)
+            best_class = None
             
             if results and results[0].boxes:
                 boxes = results[0].boxes.xywh.cpu().numpy()
@@ -201,9 +202,11 @@ class HybridTrackerWrapper:
                         if iou > 0.0 and iou > best_metric:
                             best_metric = iou
                             best_match_box = current_box
+                            if iou > 0.5:
+                                best_class = classes[i]
                     else:
                         # RECOVERY: Use Distance to last known position
-                        if self.last_box:
+                        if self.last_box: # TODO: class match check
                             lx, ly, lw, lh = self.last_box
                             cx, cy, cw, ch = current_box
                             l_center = (lx + lw/2, ly + lh/2)
@@ -219,6 +222,10 @@ class HybridTrackerWrapper:
                 # print(f"Correction/Recovery applied at frame {self.frame_count}")
                 self.tracker = TRACKERS[self.tracker_name]()
                 self.tracker.init(frame, tuple(map(int, best_match_box)))
+
+                if best_class is not None:
+                    self.target_class = best_class
+
                 return True, best_match_box
 
         return success, box
@@ -244,18 +251,18 @@ def create_tracker(name):
             return YOLOTrackerWrapper(model_path="yolo11n_ncnn_model", tracker_config="bytetrack.yaml")
         case "RTDETR-BoT":
             return YOLOTrackerWrapper(model_path="rtdetr-l.pt", tracker_config="botsort.yaml")
-        case "YOLOv8-NCNN+KCF":
-            return HybridTrackerWrapper(model_path='yolov8n_ncnn_model', detection_interval=15, tracker="KCF")
-        case "YOLOv8-NCNN+MOSSE":
-            return HybridTrackerWrapper(model_path='yolov8n_ncnn_model', detection_interval=15, tracker="MOSSE")
-        case "YOLOv8-NCNN+CSRT":
-            return HybridTrackerWrapper(model_path='yolov8n_ncnn_model', detection_interval=60, tracker="CSRT")
-        case "YOLOv11-NCNN+KCF":
-            return HybridTrackerWrapper(model_path='yolo11n_ncnn_model', detection_interval=15, tracker="KCF")
-        case "YOLOv11-NCNN+MOSSE":
-            return HybridTrackerWrapper(model_path='yolo11n_ncnn_model', detection_interval=15, tracker="MOSSE")
-        case "YOLOv11-NCNN+CSRT":
-            return HybridTrackerWrapper(model_path='yolo11n_ncnn_model', detection_interval=60, tracker="CSRT")
+        case "YOLOv8-NCNN+KCF-30-class-rest":
+            return HybridTrackerWrapper(model_path='yolov8n_ncnn_model', detection_interval=30, tracker="KCF")
+        case "YOLOv8-NCNN+MOSSE-30-class-rest":
+            return HybridTrackerWrapper(model_path='yolov8n_ncnn_model', detection_interval=30, tracker="MOSSE")
+        case "YOLOv8-NCNN+CSRT-90-class-rest":
+            return HybridTrackerWrapper(model_path='yolov8n_ncnn_model', detection_interval=90, tracker="CSRT")
+        case "YOLOv11-NCNN+KCF-30-class-rest":
+            return HybridTrackerWrapper(model_path='yolo11n_ncnn_model', detection_interval=30, tracker="KCF")
+        case "YOLOv11-NCNN+MOSSE-30-class-rest":
+            return HybridTrackerWrapper(model_path='yolo11n_ncnn_model', detection_interval=30, tracker="MOSSE")
+        case "YOLOv11-NCNN+CSRT-90-class-rest":
+            return HybridTrackerWrapper(model_path='yolo11n_ncnn_model', detection_interval=90, tracker="CSRT")
         case _:
             return TRACKERS[name]()
 
@@ -431,14 +438,17 @@ if __name__ == "__main__":
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     # Define which trackers and sequences to run
-    trackers_to_test = ["YOLOv11-NCNN+CSRT", "YOLOv11-NCNN+MOSSE", "YOLOv11-NCNN+KCF", "YOLOv8-NCNN+CSRT", "YOLOv8-NCNN+MOSSE", "YOLOv8-NCNN+KCF"]
+    trackers_to_test = ["YOLOv11-NCNN+CSRT-90-class-rest", "YOLOv11-NCNN+MOSSE-30-class-rest", "YOLOv11-NCNN+KCF-30-class-rest", "YOLOv8-NCNN+CSRT-90-class-rest", "YOLOv8-NCNN+MOSSE-30-class-rest", "YOLOv8-NCNN+KCF-30-class-rest"]
     #                     "BOOSTING", "MEDIANFLOW", "MIL", "TLD", "CSRT", "KCF", "MOSSE", "YOLOv11-Byte", "YOLOv8-Byte", 
     #                     "YOLOv11-BoT", "YOLOv8-BoT"]
     # trackers_to_test = ["CSRT", "KCF", "MOSSE", "MIL", "MEDIANFLOW", "BOOSTING", "TLD"]
     # trackers_to_test = ["YOLOv8-NCNN-BoT", "YOLOv8-NCNN-Byte", "YOLOv11-NCNN-Byte", "YOLOv11-NCNN-BoT"] 
     # trackers_to_test = ["BOOSTING", "MEDIANFLOW", "MIL", "TLD"]
     
-    sequences_to_test = ["bike1", "bike3", "boat1", "boat2", "boat3", "car1", "car2", "car3", "car4"]
+    sequences_to_test = ["bike1", "bike3", "boat1", "boat2", "boat3", "car1", "car2", "car3", "car4", "car5", "car6", "car7", 
+                         "car8", "car16", "car17", "car18", "person2", "person3", "truck1", "truck2", "truck3", 
+                         "wakeboard1", "wakeboard2", "wakeboard3"]
+    
     # sequences_to_test = ["car5", "car6", "car7", 
     #                      "car8", "car16", "car17", "car18", "person2", "person3", "truck1", "truck2", "truck3", 
     #                      "wakeboard1", "wakeboard2", "wakeboard3"]
