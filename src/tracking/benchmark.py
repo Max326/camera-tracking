@@ -263,6 +263,14 @@ def create_tracker(name):
             return HybridTrackerWrapper(model_path='yolo11n_ncnn_model', detection_interval=30, tracker="MOSSE")
         case "YOLOv11-NCNN+CSRT-90-class-rest":
             return HybridTrackerWrapper(model_path='yolo11n_ncnn_model', detection_interval=90, tracker="CSRT")
+        case "YOLOv8-NCNN+BOOSTING-30":
+            return HybridTrackerWrapper(model_path='yolov8n_ncnn_model', detection_interval=30, tracker="BOOSTING")
+        case "YOLOv8-NCNN+MEDIANFLOW-15":
+            return HybridTrackerWrapper(model_path='yolov8n_ncnn_model', detection_interval=15, tracker="MEDIANFLOW")
+        case "YOLOv8-NCNN+BOOSTING-60":
+            return HybridTrackerWrapper(model_path='yolov8n_ncnn_model', detection_interval=60, tracker="BOOSTING")
+        case "YOLOv8-NCNN+MEDIANFLOW-60":
+            return HybridTrackerWrapper(model_path='yolov8n_ncnn_model', detection_interval=60, tracker="MEDIANFLOW")
         case _:
             return TRACKERS[name]()
 
@@ -438,13 +446,15 @@ if __name__ == "__main__":
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     # Define which trackers and sequences to run
-    trackers_to_test = ["YOLOv11-NCNN+CSRT-90-class-rest", "YOLOv11-NCNN+MOSSE-30-class-rest", "YOLOv11-NCNN+KCF-30-class-rest", "YOLOv8-NCNN+CSRT-90-class-rest", "YOLOv8-NCNN+MOSSE-30-class-rest", "YOLOv8-NCNN+KCF-30-class-rest"]
+    # trackers_to_test = ["YOLOv11-NCNN+CSRT-90-class-rest", "YOLOv11-NCNN+MOSSE-30-class-rest", "YOLOv11-NCNN+KCF-30-class-rest", "YOLOv8-NCNN+CSRT-90-class-rest", "YOLOv8-NCNN+MOSSE-30-class-rest", "YOLOv8-NCNN+KCF-30-class-rest"]
     #                     "BOOSTING", "MEDIANFLOW", "MIL", "TLD", "CSRT", "KCF", "MOSSE", "YOLOv11-Byte", "YOLOv8-Byte", 
     #                     "YOLOv11-BoT", "YOLOv8-BoT"]
     # trackers_to_test = ["CSRT", "KCF", "MOSSE", "MIL", "MEDIANFLOW", "BOOSTING", "TLD"]
     # trackers_to_test = ["YOLOv8-NCNN-BoT", "YOLOv8-NCNN-Byte", "YOLOv11-NCNN-Byte", "YOLOv11-NCNN-BoT"] 
     # trackers_to_test = ["BOOSTING", "MEDIANFLOW", "MIL", "TLD"]
     
+    trackers_to_test = ["YOLOv8-NCNN+MEDIANFLOW-15"]
+
     sequences_to_test = ["bike1", "bike3", "boat1", "boat2", "boat3", "car1", "car2", "car3", "car4", "car5", "car6", "car7", 
                          "car8", "car16", "car17", "car18", "person2", "person3", "truck1", "truck2", "truck3", 
                          "wakeboard1", "wakeboard2", "wakeboard3"]
