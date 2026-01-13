@@ -178,7 +178,9 @@ class HybridTrackerWrapper:
         #    a) It's time for periodic correction
         #    b) Tracking has failed (Recovery Mode)
         if self.frame_count % self.detection_interval == 0 or not success:
-            results = self.model(frame, verbose=False)
+            # Restrict detection to the target class if known
+            target_classes = [int(self.target_class)] if self.target_class is not None else None
+            results = self.model(frame, verbose=False, classes=target_classes)
             
             best_match_box = None
             best_metric = 0 if success else float('inf') # IoU (max) or Distance (min)
@@ -504,7 +506,7 @@ if __name__ == "__main__":
                 except Exception as e:
                     print(f"Error reading existing summary: {e}. Overwriting.")
 
-            summary_df = summary_df.sort_values(by="Precision (CLE < 20px)", ascending=False)
+            summary_df = summary_df.sort_values(by=["Precision (CLE < 20px)", "Avg IoU"], ascending=False)
 
             summary_df.to_csv(summary_path, index=False)
             print(f"\nSummary for {seq} saved to: {summary_path}")

@@ -51,10 +51,12 @@ def aggregate_results():
     counts = full_df.groupby("Tracker")["Sequence"].count().reset_index(name="Sequences Count")
     aggregated = pd.merge(aggregated, counts, on="Tracker")
     
-    # Sort by Success Rate (descending)
-    # sort_col = "Success Rate (IoU > 0.5)" if "Success Rate (IoU > 0.5)" in aggregated.columns else "Avg IoU"
-    sort_col = "Precision (CLE < 20px)"
-    aggregated = aggregated.sort_values(by=sort_col, ascending=False)
+    # Sort by Precision (descending), then Avg IoU (descending)
+    sort_cols = ["Precision (CLE < 20px)", "Avg IoU"]
+    # Ensure columns exist just in case
+    sort_cols = [c for c in sort_cols if c in aggregated.columns]
+    
+    aggregated = aggregated.sort_values(by=sort_cols, ascending=False)
     
     # Round numeric columns to 4 decimal places for cleaner output
     aggregated = aggregated.round(4)
