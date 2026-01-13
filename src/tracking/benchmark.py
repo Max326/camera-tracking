@@ -227,6 +227,7 @@ class HybridTrackerWrapper:
 
                 if best_class is not None:
                     self.target_class = best_class
+                    print(f"Initialized tracking for class ID: {int(self.target_class)}")
 
                 return True, best_match_box
 
@@ -273,6 +274,10 @@ def create_tracker(name):
             return HybridTrackerWrapper(model_path='yolov8n_ncnn_model', detection_interval=60, tracker="BOOSTING")
         case "YOLOv8-NCNN+MEDIANFLOW-60":
             return HybridTrackerWrapper(model_path='yolov8n_ncnn_model', detection_interval=60, tracker="MEDIANFLOW")
+        case "YOLOv8-NCNN+KCF-15-class-rest":
+            return HybridTrackerWrapper(model_path='yolov8n_ncnn_model', detection_interval=15, tracker="KCF")
+        case "YOLOv8-NCNN+MOSSE-15-class-rest":
+            return HybridTrackerWrapper(model_path='yolov8n_ncnn_model', detection_interval=15, tracker="MOSSE")
         case _:
             return TRACKERS[name]()
 
@@ -455,7 +460,7 @@ if __name__ == "__main__":
     # trackers_to_test = ["YOLOv8-NCNN-BoT", "YOLOv8-NCNN-Byte", "YOLOv11-NCNN-Byte", "YOLOv11-NCNN-BoT"] 
     # trackers_to_test = ["BOOSTING", "MEDIANFLOW", "MIL", "TLD"]
     
-    trackers_to_test = ["YOLOv8-NCNN+MEDIANFLOW-15"]
+    trackers_to_test = ["YOLOv8-NCNN+KCF-15-class-rest", "YOLOv8-NCNN+MOSSE-15-class-rest"]
 
     sequences_to_test = ["bike1", "bike3", "boat1", "boat2", "boat3", "car1", "car2", "car3", "car4", "car5", "car6", "car7", 
                          "car8", "car16", "car17", "car18", "person2", "person3", "truck1", "truck2", "truck3", 
