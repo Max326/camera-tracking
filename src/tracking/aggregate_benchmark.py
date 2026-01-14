@@ -162,6 +162,39 @@ def aggregate_results():
     cat_grouped.sort_values(by=["Category", pivot_metric], ascending=[True, False]).to_csv(detailed_cat_path, index=False)
     print(f"\nDetailed category results saved to: {detailed_cat_path}")
 
+    # --- SAVE PER-CATEGORY CSV FILES ---
+    # Map short codes to descriptive filenames
+    CODE_TO_FILENAME = {
+        "SV": "aggregated_scale_variation",
+        "OCC": "aggregated_occlusions",
+        "FM": "aggregated_fast_motion",
+        "CM": "aggregated_calm_motion",
+        "SO": "aggregated_small_objects",
+        "BO": "aggregated_big_objects",
+        "1O": "aggregated_single_objects",
+        "MO": "aggregated_multiple_objects"
+    }
+
+    print("\n--- Saving Individual Category Files ---")
+    # Add sequence counts to category data if not present (cat_grouped in previous block didn't have it explicitly merged in the visible snippet, but let's assume we want to calculate it to be safe or just use mean)
+    # Re-calculating counts for category specifics
+    cat_counts = merged_df.groupby(["Category", "Tracker"])["Sequence"].count().reset_index(name="Sequences Count")
+    cat_detailed = pd.merge(cat_grouped, cat_counts, on=["Category", "Tracker"])
+
+    for category in cat_detailed["Category"].unique():
+        # Get data for this category
+        cat_data = cat_detailed[cat_detailed["Category"] == category].copy()
+        
+        # Sort
+        cat_data = cat_data.sort_values(by=sort_cols, ascending=False)
+        
+        # Determine filename
+        filename = CODE_TO_FILENAME.get(category, f"aggregated_{category}")
+        filepath = os.path.join(RESULTS_DIR, f"{filename}.csv")
+        
+        cat_data.to_csv(filepath, index=False)
+        print(f"Saved {filepath}")
+
 
 if __name__ == "__main__":
     aggregate_results()
