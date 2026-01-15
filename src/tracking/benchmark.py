@@ -452,7 +452,7 @@ if __name__ == "__main__":
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     # Define which trackers and sequences to run
-    trackers_to_test = ["CSRT", "YOLOv8-NCNN+CSRT-90", "YOLOv8-NCNN+KCF-30", "YOLOv8-NCNN+MOSSE-30", "YOLOv8-NCNN+MEDIANFLOW-15"]
+    trackers_to_test = ["YOLOv8-NCNN+KCF-15", "YOLOv8-NCNN+MOSSE-15"]
     #                     "BOOSTING", "MEDIANFLOW", "MIL", "TLD", "CSRT", "KCF", "MOSSE", "YOLOv11-Byte", "YOLOv8-Byte", 
     #                     "YOLOv11-BoT", "YOLOv8-BoT"]
     # trackers_to_test = ["CSRT", "KCF", "MOSSE", "MIL", "MEDIANFLOW", "BOOSTING", "TLD"]
