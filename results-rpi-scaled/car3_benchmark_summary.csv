@@ -1,0 +1,2 @@
+Tracker,Sequence,Avg FPS,Valid FPS,Avg IoU,Precision (CLE < 20px),Success Rate (IoU > 0.5),AUC
+KCF,car3,2000.1681,1092.4558,0.1138,0.1416,0.141,0.1134

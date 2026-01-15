@@ -1,0 +1,2 @@
+Tracker,Sequence,Avg FPS,Valid FPS,Avg IoU,Precision (CLE < 20px),Success Rate (IoU > 0.5),AUC
+KCF,person2,232.6659,119.5164,0.1159,0.1674,0.1674,0.1156

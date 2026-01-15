@@ -60,10 +60,32 @@ def process_sequence(seq_name):
         return
         
     orig_h, orig_w = first_img.shape[:2]
-    scale_x = TARGET_WIDTH / orig_w
-    scale_y = TARGET_HEIGHT / orig_h
     
-    print(f"  Original Size: {orig_w}x{orig_h} -> Target: {TARGET_WIDTH}x{TARGET_HEIGHT}")
+    # Calculate crop to preserve aspect ratio
+    target_ar = TARGET_WIDTH / TARGET_HEIGHT
+    src_ar = orig_w / orig_h
+    
+    # Defaults (no crop)
+    crop_x, crop_y = 0, 0
+    crop_w, crop_h = orig_w, orig_h
+
+    if src_ar > target_ar:
+        # Source is wider: Crop width (sides) to match target AR
+        new_w = int(orig_h * target_ar)
+        crop_x = (orig_w - new_w) // 2
+        crop_w = new_w
+        print(f"  [Crop] Input is wider. Cropping sides. New size: {crop_w}x{crop_h} (x_offset={crop_x})")
+    elif src_ar < target_ar:
+        # Source is taller: Crop height (top/bottom)
+        new_h = int(orig_w / target_ar)
+        crop_y = (orig_h - new_h) // 2
+        crop_h = new_h
+        print(f"  [Crop] Input is taller. Cropping top/bottom. New size: {crop_w}x{crop_h} (y_offset={crop_y})")
+
+    scale_x = TARGET_WIDTH / crop_w
+    scale_y = TARGET_HEIGHT / crop_h
+    
+    print(f"  Original Size: {orig_w}x{orig_h} -> Crop: {crop_w}x{crop_h} -> Target: {TARGET_WIDTH}x{TARGET_HEIGHT}")
     print(f"  Scale X: {scale_x:.4f}, Scale Y: {scale_y:.4f}")
 
     # 4. Process Images
@@ -82,7 +104,8 @@ def process_sequence(seq_name):
         if img is None: 
             continue
         
-        resized_img = cv2.resize(img, (TARGET_WIDTH, TARGET_HEIGHT), interpolation=cv2.INTER_LINEAR)
+        cropped_img = img[crop_y:crop_y+crop_h, crop_x:crop_x+crop_w]
+        resized_img = cv2.resize(cropped_img, (TARGET_WIDTH, TARGET_HEIGHT), interpolation=cv2.INTER_LINEAR)
         cv2.imwrite(out_img_path, resized_img)
         
         if i % 100 == 0:
@@ -112,15 +135,34 @@ def process_sequence(seq_name):
             if np.isnan(box).any():
                 new_line = "NaN,NaN,NaN,NaN\n" # Preserve structure for NaNs
             else:
-                # Apply scaling
-                new_box = [
-                    box[0] * scale_x,
-                    box[1] * scale_y,
-                    box[2] * scale_x,
-                    box[3] * scale_y
-                ]
-                # Write as comma-separated values
-                new_line = ",".join([f"{v:.2f}" for v in new_box]) + "\n"
+                 # Adjust for Crop (Shift)
+                bx_shifted = box[0] - crop_x
+                by_shifted = box[1] - crop_y
+                bw = box[2]
+                bh = box[3]
+                
+                # Clip to visible area to ensure ground truth matches visual content
+                x1 = max(0, bx_shifted)
+                y1 = max(0, by_shifted)
+                x2 = min(crop_w, bx_shifted + bw)
+                y2 = min(crop_h, by_shifted + bh)
+                
+                vis_w = x2 - x1
+                vis_h = y2 - y1
+                
+                if vis_w <= 0 or vis_h <= 0:
+                    # Object is fully cropped out
+                    new_line = "NaN,NaN,NaN,NaN\n"
+                else:
+                    # Scale to new resolution
+                    new_box = [
+                        x1 * scale_x,
+                        y1 * scale_y,
+                        vis_w * scale_x,
+                        vis_h * scale_y
+                    ]
+                    # Write as comma-separated values
+                    new_line = ",".join([f"{v:.2f}" for v in new_box]) + "\n"
             
             new_lines.append(new_line)
             

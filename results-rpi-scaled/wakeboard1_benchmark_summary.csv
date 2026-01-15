@@ -1,0 +1,2 @@
+Tracker,Sequence,Avg FPS,Valid FPS,Avg IoU,Precision (CLE < 20px),Success Rate (IoU > 0.5),AUC
+KCF,wakeboard1,110.5436,46.2546,0.0649,0.0881,0.0881,0.0648

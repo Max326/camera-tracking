@@ -1,0 +1,2 @@
+Tracker,Avg FPS,Valid FPS,Avg IoU,Precision (CLE < 20px),Success Rate (IoU > 0.5),Sequences Count
+KCF,912.4741,488.0665,0.1656,0.2442,0.1319,23
