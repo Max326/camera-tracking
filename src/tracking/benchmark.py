@@ -284,9 +284,9 @@ def create_tracker(name):
             return YOLOTrackerWrapper(model_path="yolo11n_ncnn_model", tracker_config="bytetrack.yaml")
         case "RTDETR-BoT":
             return YOLOTrackerWrapper(model_path="rtdetr-l.pt", tracker_config="botsort.yaml")
-        case "YOLOv8-NCNN+KCF-10":
+        case "YOLOv8-NCNN+KCF-adaptive":
             return HybridTrackerWrapper(model_path='yolov8n_ncnn_model', detection_interval=10, tracker="KCF")
-        case "YOLOv8-NCNN+MOSSE-10":
+        case "YOLOv8-NCNN+MOSSE-adaptive":
             return HybridTrackerWrapper(model_path='yolov8n_ncnn_model', detection_interval=10, tracker="MOSSE")
         case "YOLOv8-NCNN+CSRT-90":
             return HybridTrackerWrapper(model_path='yolov8n_ncnn_model', detection_interval=90, tracker="CSRT")
@@ -491,16 +491,16 @@ if __name__ == "__main__":
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     # Define which trackers and sequences to run
-    trackers_to_test = ["YOLOv8-NCNN+KCF-10", "YOLOv8-NCNN+MOSSE-10"]
+    trackers_to_test = ["YOLOv8-NCNN+KCF-adaptive", "YOLOv8-NCNN+MOSSE-adaptive"]
     #                     "BOOSTING", "MEDIANFLOW", "MIL", "TLD", "CSRT", "KCF", "MOSSE", "YOLOv11-Byte", "YOLOv8-Byte", 
     #                     "YOLOv11-BoT", "YOLOv8-BoT"]
     # trackers_to_test = ["CSRT", "KCF", "MOSSE", "MIL", "MEDIANFLOW", "BOOSTING", "TLD"]
     # trackers_to_test = ["YOLOv8-NCNN-BoT", "YOLOv8-NCNN-Byte", "YOLOv11-NCNN-Byte", "YOLOv11-NCNN-BoT"] 
     # trackers_to_test = ["BOOSTING", "MEDIANFLOW", "MIL", "TLD"]
     
-    sequences_to_test = ["bike1", "bike3", "boat1", "boat2", "boat3", "car1", "car2", "car3", "car4"]
-    # sequences_to_test = ["car5", "car6", "car7", "car8", "car16", "car17", "car18", "person2", "person3", 
-    #                      "truck1", "truck2", "truck3", "wakeboard1", "wakeboard2", "wakeboard3"]
+    # sequences_to_test = ["bike1", "bike3", "boat1", "boat2", "boat3", "car1", "car2", "car3", "car4"]
+    sequences_to_test = ["car5", "car6", "car7", "car8", "car16", "car17", "car18", "person2", "person3", 
+                         "truck1", "truck2", "truck3", "wakeboard1", "wakeboard2", "wakeboard3"]
     
     all_frame_results = []
     summary_results = []
@@ -543,7 +543,7 @@ if __name__ == "__main__":
                 except Exception as e:
                     print(f"Error reading existing summary: {e}. Overwriting.")
 
-            summary_df = summary_df.sort_values(by="Precision (CLE < 20px)", ascending=False)
+            summary_df = summary_df.sort_values(by=["Precision (CLE < 20px)", "Avg IoU"], ascending=False)
 
             summary_df.to_csv(summary_path, index=False)
             print(f"\nSummary for {seq} saved to: {summary_path}")
