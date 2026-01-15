@@ -239,6 +239,18 @@ def create_tracker(name):
             return HybridTrackerWrapper(model_path='yolo11n.pt', detection_interval=15, tracker="MOSSE")
         case "YOLOv11+CSRT":
             return HybridTrackerWrapper(model_path='yolo11n.pt', detection_interval=60, tracker="CSRT")
+        case "YOLOv8+MEDIANFLOW-15":
+            return HybridTrackerWrapper(model_path='yolov8n.pt', detection_interval=15, tracker="MEDIANFLOW")
+        case "YOLOv8+MEDIANFLOW-30":
+            return HybridTrackerWrapper(model_path='yolov8n.pt', detection_interval=30, tracker="MEDIANFLOW")
+        case "YOLOv8+MEDIANFLOW-60":
+            return HybridTrackerWrapper(model_path='yolov8n.pt', detection_interval=60, tracker="MEDIANFLOW")
+        case "YOLOv8+BOOSTING-15":
+            return HybridTrackerWrapper(model_path='yolov8n.pt', detection_interval=15, tracker="BOOSTING")
+        case "YOLOv8+BOOSTING-30":
+            return HybridTrackerWrapper(model_path='yolov8n.pt', detection_interval=30, tracker="BOOSTING")
+        case "YOLOv8+BOOSTING-60":
+            return HybridTrackerWrapper(model_path='yolov8n.pt', detection_interval=60, tracker="BOOSTING")
         case _:
             return TRACKERS[name]()
 
@@ -414,7 +426,8 @@ if __name__ == "__main__":
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     # Define which trackers and sequences to run
-    trackers_to_test = ["YOLOv11+CSRT", "YOLOv11+MOSSE", "YOLOv11+KCF"]
+    trackers_to_test = ["YOLOv8+MEDIANFLOW-15", "YOLOv8+MEDIANFLOW-30", "YOLOv8+MEDIANFLOW-60",
+                        "YOLOv8+BOOSTING-15", "YOLOv8+BOOSTING-30", "YOLOv8+BOOSTING-60"]
     # trackers_to_test = ["RTDETR-BoT", "YOLOv8-BoT", "YOLOv8-Byte", "YOLOv11-BoT", "YOLOv11-Byte"] 
     # trackers_to_test = ["BOOSTING", "MEDIANFLOW", "MIL", "TLD"]
     
