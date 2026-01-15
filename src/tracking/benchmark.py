@@ -126,7 +126,7 @@ class YOLOTrackerWrapper:
         return False, self.last_box # Target lost in this frame
     
 class HybridTrackerWrapper:
-    def __init__(self, model_path='yolov11n.pt', detection_interval=10, tracker="KCF"):
+    def __init__(self, model_path='yolo11n.pt', detection_interval=10, tracker="KCF", conf_threshold=0.6):
         self.model = YOLO(model_path, task='detect')
         self.model(np.zeros((640, 640, 3), dtype=np.uint8), verbose=False) # model warm-up
 
@@ -137,12 +137,38 @@ class HybridTrackerWrapper:
         self.last_box = None
         self.is_tracking = False
         self.target_class = None
+        
+        # Appearance Confidence
+        self.conf_threshold = conf_threshold
+        self.ref_hist = None
+
+    def get_hist(self, frame, box):
+        """Extracts HSV histogram from the bounding box area."""
+        x, y, w, h = map(int, box)
+        h_img, w_img = frame.shape[:2]
+        
+        # Clip to image bounds
+        x = max(0, x); y = max(0, y)
+        w = min(w, w_img - x); h = min(h, h_img - y)
+        
+        if w <= 0 or h <= 0: return None
+        
+        roi = frame[y:y+h, x:x+w]
+        hsv_roi = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
+        
+        # Calculate Hue histogram (0-179)
+        hist = cv2.calcHist([hsv_roi], [0], None, [180], [0, 180])
+        cv2.normalize(hist, hist, 0, 255, cv2.NORM_MINMAX)
+        return hist
 
     def init(self, frame, box):
         self.last_box = box
         self.tracker.init(frame, box)
         self.is_tracking = True
         self.frame_count = 0
+        
+        # Initialize appearance reference
+        self.ref_hist = self.get_hist(frame, box)
 
         results = self.model(frame, verbose=False)
         if results and results[0].boxes:
@@ -171,14 +197,28 @@ class HybridTrackerWrapper:
         # 1. Always update the tracker (Fast)
         success, box = self.tracker.update(frame)
         
+        # 2. Calculate Confidence
+        confidence = 0.0
+        if success and self.ref_hist is not None:
+            cur_hist = self.get_hist(frame, box)
+            if cur_hist is not None:
+                # Compare Histogram: Correlation (1.0 = perfect match)
+                confidence = cv2.compareHist(self.ref_hist, cur_hist, cv2.HISTCMP_CORREL)
+        
         if success:
             self.last_box = box
         
-        # 2. Run YOLO if:
-        #    a) It's time for periodic correction
-        #    b) Tracking has failed (Recovery Mode)
-        if self.frame_count % self.detection_interval == 0 or not success:
-            results = self.model(frame, verbose=False)
+        # 3. Run YOLO if:
+        #    a) Tracking entirely failed
+        #    b) Confidence (Appearance) dropped below threshold
+        #    c) (Optional) Helper periodic check if you still want it, otherwise we rely on confidence
+        
+        need_correction = not success or (confidence < self.conf_threshold)
+
+        if need_correction:
+            # Restrict detection to the target class if known
+            target_classes = [int(self.target_class)] if self.target_class is not None else None
+            results = self.model(frame, verbose=False, classes=target_classes)
             
             best_match_box = None
             best_metric = 0 if success else float('inf') # IoU (max) or Distance (min)
@@ -244,10 +284,10 @@ def create_tracker(name):
             return YOLOTrackerWrapper(model_path="yolo11n_ncnn_model", tracker_config="bytetrack.yaml")
         case "RTDETR-BoT":
             return YOLOTrackerWrapper(model_path="rtdetr-l.pt", tracker_config="botsort.yaml")
-        case "YOLOv8-NCNN+KCF-30":
-            return HybridTrackerWrapper(model_path='yolov8n_ncnn_model', detection_interval=30, tracker="KCF")
-        case "YOLOv8-NCNN+MOSSE-30":
-            return HybridTrackerWrapper(model_path='yolov8n_ncnn_model', detection_interval=30, tracker="MOSSE")
+        case "YOLOv8-NCNN+KCF-10":
+            return HybridTrackerWrapper(model_path='yolov8n_ncnn_model', detection_interval=10, tracker="KCF")
+        case "YOLOv8-NCNN+MOSSE-10":
+            return HybridTrackerWrapper(model_path='yolov8n_ncnn_model', detection_interval=10, tracker="MOSSE")
         case "YOLOv8-NCNN+CSRT-90":
             return HybridTrackerWrapper(model_path='yolov8n_ncnn_model', detection_interval=90, tracker="CSRT")
         case "YOLOv11-NCNN+KCF-30":
@@ -451,17 +491,16 @@ if __name__ == "__main__":
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     # Define which trackers and sequences to run
-    trackers_to_test = ["YOLOv8-NCNN+CSRT-90", "YOLOv11-NCNN+CSRT-90", "YOLOv8-NCNN+KCF-30", "YOLOv11-NCNN+KCF-30",
-                        "YOLOv8-NCNN+MOSSE-30", "YOLOv11-NCNN+MOSSE-30"]
+    trackers_to_test = ["YOLOv8-NCNN+KCF-10", "YOLOv8-NCNN+MOSSE-10"]
     #                     "BOOSTING", "MEDIANFLOW", "MIL", "TLD", "CSRT", "KCF", "MOSSE", "YOLOv11-Byte", "YOLOv8-Byte", 
     #                     "YOLOv11-BoT", "YOLOv8-BoT"]
     # trackers_to_test = ["CSRT", "KCF", "MOSSE", "MIL", "MEDIANFLOW", "BOOSTING", "TLD"]
     # trackers_to_test = ["YOLOv8-NCNN-BoT", "YOLOv8-NCNN-Byte", "YOLOv11-NCNN-Byte", "YOLOv11-NCNN-BoT"] 
     # trackers_to_test = ["BOOSTING", "MEDIANFLOW", "MIL", "TLD"]
     
-    # sequences_to_test = ["bike1", "bike3", "boat1", "boat2", "boat3", "car1", "car2", "car3", "car4",
-    sequences_to_test = ["car5", "car6", "car7", "car8", "car16", "car17", "car18", "person2", "person3", 
-                         "truck1", "truck2", "truck3", "wakeboard1", "wakeboard2", "wakeboard3"]
+    sequences_to_test = ["bike1", "bike3", "boat1", "boat2", "boat3", "car1", "car2", "car3", "car4"]
+    # sequences_to_test = ["car5", "car6", "car7", "car8", "car16", "car17", "car18", "person2", "person3", 
+    #                      "truck1", "truck2", "truck3", "wakeboard1", "wakeboard2", "wakeboard3"]
     
     all_frame_results = []
     summary_results = []
