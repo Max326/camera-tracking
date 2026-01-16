@@ -28,8 +28,6 @@ class YOLOTrackerWrapper:
         self.tracker_config = tracker_config
         self.target_id = None
         self.last_box = None
-        self.lost_frames = 0
-        self.max_lost_frames = 60 # Allow 2 seconds (at 30fps) to recover
 
     def init(self, frame, box):
         # box is (x, y, w, h)
@@ -61,7 +59,6 @@ class YOLOTrackerWrapper:
 
         self.target_id = best_id
         self.last_box = (det_box[0] - det_box[2]/2, det_box[1] - det_box[3]/2, det_box[2], det_box[3])
-        self.lost_frames = 0
         return True
 
     def update(self, frame):
@@ -71,7 +68,6 @@ class YOLOTrackerWrapper:
         results = self.model.track(frame, persist=True, tracker=self.tracker_config, verbose=False)
         
         if not results or results[0].boxes.id is None:
-            self.lost_frames += 1
             return False, self.last_box # Return last known position
 
         boxes = results[0].boxes.xywh.cpu().numpy()
@@ -89,37 +85,33 @@ class YOLOTrackerWrapper:
             w = det_box[2]
             h = det_box[3]
             self.last_box = (x, y, w, h)
-            self.lost_frames = 0
             return True, self.last_box
         
         # 2. If ID not found, try to recover if we haven't been lost for too long
-        if self.lost_frames < self.max_lost_frames:
-            # Look for a new ID that overlaps significantly with our last known box
-            best_iou = 0
-            best_new_id = None
-            best_new_box = None
+        # Look for a new ID that overlaps significantly with our last known box
+        best_iou = 0
+        best_new_id = None
+        best_new_box = None
+        
+        last_box_xywh = self.last_box # (x, y, w, h)
+        
+        for i, det_box in enumerate(boxes):
+            # det_box is (cx, cy, w, h) -> convert to (x, y, w, h)
+            current_box = (det_box[0] - det_box[2]/2, det_box[1] - det_box[3]/2, det_box[2], det_box[3])
             
-            last_box_xywh = self.last_box # (x, y, w, h)
-            
-            for i, det_box in enumerate(boxes):
-                # det_box is (cx, cy, w, h) -> convert to (x, y, w, h)
-                current_box = (det_box[0] - det_box[2]/2, det_box[1] - det_box[3]/2, det_box[2], det_box[3])
-                
-                iou = calculate_iou(last_box_xywh, current_box)
-                if iou > 0.2: # Strict threshold to avoid jumping to wrong object
-                    if iou > best_iou:
-                        best_iou = iou
-                        best_new_id = ids[i]
-                        best_new_box = current_box
-            
-            if best_new_id is not None:
-                print(f"ID Switch: {self.target_id} -> {best_new_id} (IoU: {best_iou:.2f})")
-                self.target_id = best_new_id
-                self.last_box = best_new_box
-                self.lost_frames = 0
-                return True, self.last_box
+            iou = calculate_iou(last_box_xywh, current_box)
+            if iou > 0.2: # Strict threshold to avoid jumping to wrong object
+                if iou > best_iou:
+                    best_iou = iou
+                    best_new_id = ids[i]
+                    best_new_box = current_box
+        
+        if best_new_id is not None:
+            print(f"ID Switch: {self.target_id} -> {best_new_id} (IoU: {best_iou:.2f})")
+            self.target_id = best_new_id
+            self.last_box = best_new_box
+            return True, self.last_box
 
-        self.lost_frames += 1
         return False, self.last_box # Target lost in this frame
     
 class HybridTrackerWrapper:
@@ -426,15 +418,12 @@ if __name__ == "__main__":
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     # Define which trackers and sequences to run
-    trackers_to_test = ["YOLOv8+MEDIANFLOW-15", "YOLOv8+MEDIANFLOW-30", "YOLOv8+MEDIANFLOW-60",
-                        "YOLOv8+BOOSTING-15", "YOLOv8+BOOSTING-30", "YOLOv8+BOOSTING-60"]
+    trackers_to_test = ["YOLOv11-BoT"]
     # trackers_to_test = ["RTDETR-BoT", "YOLOv8-BoT", "YOLOv8-Byte", "YOLOv11-BoT", "YOLOv11-Byte"] 
     # trackers_to_test = ["BOOSTING", "MEDIANFLOW", "MIL", "TLD"]
     
     # sequences_to_test = ["uav1"]
-    sequences_to_test = ["bike1", "bike3", "boat1", "boat2", "boat3", "car1", "car2", "car3", "car4", "car5", "car6", "car7", 
-                         "car8", "car16", "car17", "car18", "person2", "person3", "truck1", "truck2", "truck3", 
-                         "wakeboard1", "wakeboard2", "wakeboard3"]
+    sequences_to_test = ["boat3"] # TODO I SKIPPED BOAT3 FOR YOLOV11-BOT
     
     all_frame_results = []
     summary_results = []
