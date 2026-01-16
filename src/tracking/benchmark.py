@@ -450,7 +450,8 @@ def calculate_summary(df):
 
 if __name__ == "__main__":
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-
+    
+    # TODO: run for just MOSSE and MEDIANFLOW for the scaled dataset
     # Define which trackers and sequences to run
     trackers_to_test = ["YOLOv8-NCNN+KCF-15", "YOLOv8-NCNN+MOSSE-15"]
     #                     "BOOSTING", "MEDIANFLOW", "MIL", "TLD", "CSRT", "KCF", "MOSSE", "YOLOv11-Byte", "YOLOv8-Byte", 
