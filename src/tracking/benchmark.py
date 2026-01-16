@@ -187,7 +187,7 @@ class HybridTrackerWrapper:
                     if success:
                         # CORRECTION: Use IoU
                         iou = calculate_iou(box, current_box)
-                        if iou > 0.0 and iou > best_metric:
+                        if iou > 0.3 and iou > best_metric: # TODO: risky, maybe set a min threshold?
                             best_metric = iou
                             best_match_box = current_box
                     else:
@@ -231,8 +231,8 @@ def create_tracker(name):
             return HybridTrackerWrapper(model_path='yolo11n.pt', detection_interval=15, tracker="MOSSE")
         case "YOLOv11+CSRT":
             return HybridTrackerWrapper(model_path='yolo11n.pt', detection_interval=60, tracker="CSRT")
-        case "YOLOv8+MEDIANFLOW-15":
-            return HybridTrackerWrapper(model_path='yolov8n.pt', detection_interval=15, tracker="MEDIANFLOW")
+        case "YOLOv8+KCF-15-0.3iou":
+            return HybridTrackerWrapper(model_path='yolov8n.pt', detection_interval=15, tracker="KCF")
         case "YOLOv8+MEDIANFLOW-30":
             return HybridTrackerWrapper(model_path='yolov8n.pt', detection_interval=30, tracker="MEDIANFLOW")
         case "YOLOv8+MEDIANFLOW-60":
@@ -418,12 +418,14 @@ if __name__ == "__main__":
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     # Define which trackers and sequences to run
-    trackers_to_test = ["YOLOv11-BoT"]
+    trackers_to_test = ["YOLOv8+KCF-15-0.3iou"]
     # trackers_to_test = ["RTDETR-BoT", "YOLOv8-BoT", "YOLOv8-Byte", "YOLOv11-BoT", "YOLOv11-Byte"] 
     # trackers_to_test = ["BOOSTING", "MEDIANFLOW", "MIL", "TLD"]
     
     # sequences_to_test = ["uav1"]
-    sequences_to_test = ["boat3"] # TODO I SKIPPED BOAT3 FOR YOLOV11-BOT
+    sequences_to_test = ["bike1", "bike3", "boat1", "boat2", "boat3", "car1", "car2", "car3", "car4", "car5", "car6", "car7", 
+                         "car8", "car16", "car17", "car18", "person2", "person3", "truck1", "truck2", "truck3", 
+                         "wakeboard1", "wakeboard2", "wakeboard3"]
     
     all_frame_results = []
     summary_results = []
