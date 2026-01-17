@@ -187,7 +187,7 @@ class HybridTrackerWrapper:
                     if success:
                         # CORRECTION: Use IoU
                         iou = calculate_iou(box, current_box)
-                        if iou > 0.3 and iou > best_metric: # TODO: risky, maybe set a min threshold?
+                        if iou > 0.0 and iou > best_metric: # TODO: risky, maybe set a min threshold?
                             best_metric = iou
                             best_match_box = current_box
                     else:
@@ -231,7 +231,7 @@ def create_tracker(name):
             return HybridTrackerWrapper(model_path='yolo11n.pt', detection_interval=15, tracker="MOSSE")
         case "YOLOv11+CSRT":
             return HybridTrackerWrapper(model_path='yolo11n.pt', detection_interval=60, tracker="CSRT")
-        case "YOLOv8+KCF-15-0.3iou":
+        case "YOLOv8+KCF-15":
             return HybridTrackerWrapper(model_path='yolov8n.pt', detection_interval=15, tracker="KCF")
         case "YOLOv8+MEDIANFLOW-30":
             return HybridTrackerWrapper(model_path='yolov8n.pt', detection_interval=30, tracker="MEDIANFLOW")
@@ -418,7 +418,7 @@ if __name__ == "__main__":
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     # Define which trackers and sequences to run
-    trackers_to_test = ["YOLOv8+KCF-15-0.3iou"]
+    trackers_to_test = ["YOLOv8+KCF-15"]
     # trackers_to_test = ["RTDETR-BoT", "YOLOv8-BoT", "YOLOv8-Byte", "YOLOv11-BoT", "YOLOv11-Byte"] 
     # trackers_to_test = ["BOOSTING", "MEDIANFLOW", "MIL", "TLD"]
     
