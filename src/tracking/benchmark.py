@@ -127,8 +127,9 @@ class HybridTrackerWrapper:
         self.last_known_box = None
 
     def init(self, frame, box):
+        self.last_box = box
         self.tracker.init(frame, box)
-        self.last_known_box = box
+        self.is_tracking = True
         self.frame_count = 0
 
         results = self.model(frame, verbose=False)
@@ -136,15 +137,13 @@ class HybridTrackerWrapper:
             boxes = results[0].boxes.xywh.cpu().numpy()
             classes = results[0].boxes.cls.cpu().numpy()
             
-            # Vectorized conversion to top-left for setup
-            current_boxes = np.copy(boxes)
-            current_boxes[:, 0] -= boxes[:, 2] / 2
-            current_boxes[:, 1] -= boxes[:, 3] / 2
-            
             best_iou = 0
-            # Simple loop here is fine as it runs once
-            for i, c_box in enumerate(current_boxes):
-                iou = calculate_iou(box, c_box)
+            for i, det_box in enumerate(boxes):
+                # Convert center-xywh to top-left-xywh
+                current_box = (det_box[0] - det_box[2]/2, det_box[1] - det_box[3]/2, det_box[2], det_box[3])
+                iou = calculate_iou(box, current_box)
+                
+                # If the initial box overlaps significantly with a detection, lock onto that class
                 if iou > 0.5 and iou > best_iou:
                     best_iou = iou
                     self.target_class = classes[i]
@@ -161,61 +160,55 @@ class HybridTrackerWrapper:
         success, box = self.tracker.update(frame)
         
         if success:
-            self.last_known_box = box 
-
-        should_run_yolo = (self.frame_count % self.detection_interval == 0) or (not success)
-
-        if should_run_yolo: 
-            self.frame_count = 0
+            self.last_box = box
+        
+        # 2. Run YOLO if:
+        #    a) It's time for periodic correction
+        #    b) Tracking has failed (Recovery Mode)
+        if self.frame_count % self.detection_interval == 0 or not success:
             results = self.model(frame, verbose=False)
             
-            best_box = None
-            best_metric = 0 if success else float('inf') # IoU gets Max, Dist gets Min
+            best_match_box = None
+            best_metric = 0 if success else float('inf') # IoU (max) or Distance (min)
             
             if results and results[0].boxes:
-                if self.target_class is not None:
-                    cls_mask = results[0].boxes.cls.cpu().numpy() == self.target_class
-                    if not np.any(cls_mask):
-                        return success, box
-                    filtered_boxes = results[0].boxes.xywh.cpu().numpy()[cls_mask]
-                else:
-                    filtered_boxes = results[0].boxes.xywh.cpu().numpy()
+                boxes = results[0].boxes.xywh.cpu().numpy()
+                classes = results[0].boxes.cls.cpu().numpy()
 
-                for det_ix, det_box in enumerate(filtered_boxes):
+                for i, det_box in enumerate(boxes):
+                    # CLASS CHECK: Ignore detections that don't match our target class
+                    if self.target_class is not None and classes[i] != self.target_class:
+                        continue
+
+                    # Convert center-xywh to top-left-xywh
                     current_box = (det_box[0] - det_box[2]/2, det_box[1] - det_box[3]/2, det_box[2], det_box[3])
                     
                     if success:
+                        # CORRECTION: Use IoU
                         iou = calculate_iou(box, current_box)
                         if iou > 0.0 and iou > best_metric:
                             best_metric = iou
-                            best_box = current_box
+                            best_match_box = current_box
                     else:
-                        if self.last_known_box:
-                            lx, ly, lw, lh = self.last_known_box
+                        # RECOVERY: Use Distance to last known position
+                        if self.last_box:
+                            lx, ly, lw, lh = self.last_box
                             cx, cy, cw, ch = current_box
-                            
                             l_center = (lx + lw/2, ly + lh/2)
                             c_center = (cx + cw/2, cy + ch/2)
-                            
                             dist = math.sqrt((l_center[0] - c_center[0])**2 + (l_center[1] - c_center[1])**2)
                             
                             if dist < best_metric:
                                 best_metric = dist
-                                best_box = current_box
+                                best_match_box = current_box
 
-            # 3. Decision Logic
-            if best_box is not None:
-                # If KCF is working and matches YOLO well, keep KCF (Anti-Jitter)
-                if success and best_metric > 0.75:
-                   self.last_known_box = box 
-                   return True, box
-
-                # Drift detected OR Total loss -> Hard reset
+            # If detector found the object, re-initialize KCF
+            if best_match_box is not None:
+                # print(f"Correction/Recovery applied at frame {self.frame_count}")
                 self.tracker = TRACKERS[self.tracker_name]()
-                self.tracker.init(frame, tuple(map(int, best_box)))
-                # Update known position to the new reset position
-                self.last_known_box = best_box
-        
+                self.tracker.init(frame, tuple(map(int, best_match_box)))
+                return True, best_match_box
+
         return success, box
 
 # --- TRACKER FACTORY ---
