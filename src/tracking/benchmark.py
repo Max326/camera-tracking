@@ -160,73 +160,61 @@ class HybridTrackerWrapper:
         # 1. Always update KCF (Fast)
         success, box = self.tracker.update(frame)
         
-        # Keep track of last valid box for recovery
-        search_box = box if success else self.last_known_box
+        if success:
+            self.last_known_box = box 
 
-        # 2. Check conditions to run YOLO
-        #    Run if: Interval reached OR Tracker failed (Recovery Mode)
         should_run_yolo = (self.frame_count % self.detection_interval == 0) or (not success)
-
 
         if should_run_yolo: 
             self.frame_count = 0
             results = self.model(frame, verbose=False)
             
             best_box = None
-            # best_iou = 0
-            best_metric = 0 if success else float('inf') # IoU (max) or Distance (min)
+            best_metric = 0 if success else float('inf') # IoU gets Max, Dist gets Min
             
             if results and results[0].boxes:
-                # OPTIMIZATION: Filter by class using boolean mask (Vectorized)
-                # This avoids looping through irrelevant detections
                 if self.target_class is not None:
                     cls_mask = results[0].boxes.cls.cpu().numpy() == self.target_class
                     if not np.any(cls_mask):
-                        return success, box # No target class found
-                    
+                        return success, box
                     filtered_boxes = results[0].boxes.xywh.cpu().numpy()[cls_mask]
                 else:
                     filtered_boxes = results[0].boxes.xywh.cpu().numpy()
 
-                # Process only relevant boxes
                 for det_ix, det_box in enumerate(filtered_boxes):
-                    # Convert center-xywh to top-left-xywh
                     current_box = (det_box[0] - det_box[2]/2, det_box[1] - det_box[3]/2, det_box[2], det_box[3])
                     
                     if success:
-                        # CORRECTION: Use IoU
-                        iou = calculate_iou(search_box, current_box)
-                        
+                        iou = calculate_iou(box, current_box)
                         if iou > 0.0 and iou > best_metric:
                             best_metric = iou
                             best_box = current_box
                     else:
-                        # RECOVERY: Use Distance to last known position
-                        if self.last_box:
-                            lx, ly, lw, lh = self.last_box
+                        if self.last_known_box:
+                            lx, ly, lw, lh = self.last_known_box
                             cx, cy, cw, ch = current_box
+                            
                             l_center = (lx + lw/2, ly + lh/2)
                             c_center = (cx + cw/2, cy + ch/2)
+                            
                             dist = math.sqrt((l_center[0] - c_center[0])**2 + (l_center[1] - c_center[1])**2)
                             
                             if dist < best_metric:
                                 best_metric = dist
                                 best_box = current_box
 
-
             # 3. Decision Logic
             if best_box is not None:
-                # OPTIMIZATION: Jitter Reduction
-                # If KCF is working (success) and matches YOLO well (>0.75 IoU),
-                # trust KCF to preserve smoothness and avoid costly re-init.
+                # If KCF is working and matches YOLO well, keep KCF (Anti-Jitter)
                 if success and best_metric > 0.75:
-                   self.last_known_box = box # Update valid position
+                   self.last_known_box = box 
                    return True, box
 
-                # Otherwise (Drift is large OR KCF lost track), hard reset
-                # print(f"Correction/Recovery applied at frame {self.frame_count}")
+                # Drift detected OR Total loss -> Hard reset
                 self.tracker = TRACKERS[self.tracker_name]()
                 self.tracker.init(frame, tuple(map(int, best_box)))
+                # Update known position to the new reset position
+                self.last_known_box = best_box
         
         return success, box
 
@@ -249,7 +237,7 @@ def create_tracker(name):
             return HybridTrackerWrapper(model_path='yolo11n.pt', detection_interval=15, tracker="MOSSE")
         case "YOLOv11+CSRT":
             return HybridTrackerWrapper(model_path='yolo11n.pt', detection_interval=60, tracker="CSRT")
-        case "YOLOv8+KCF-15":
+        case "YOLOv8+KCF-15-v3":
             return HybridTrackerWrapper(model_path='yolov8n.pt', detection_interval=15, tracker="KCF")
         case "YOLOv8+MEDIANFLOW-30":
             return HybridTrackerWrapper(model_path='yolov8n.pt', detection_interval=30, tracker="MEDIANFLOW")
@@ -436,7 +424,7 @@ if __name__ == "__main__":
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     # Define which trackers and sequences to run
-    trackers_to_test = ["YOLOv8+KCF-15"]
+    trackers_to_test = ["YOLOv8+KCF-15-v3"]
     # trackers_to_test = ["RTDETR-BoT", "YOLOv8-BoT", "YOLOv8-Byte", "YOLOv11-BoT", "YOLOv11-Byte"] 
     # trackers_to_test = ["BOOSTING", "MEDIANFLOW", "MIL", "TLD"]
     
