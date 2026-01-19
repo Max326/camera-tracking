@@ -1,0 +1,87 @@
+15k samples
+
+hard reset: csrt:
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260119-230016.csv
+========================================
+ Samples:     15000
+ Duration:    349.6 s
+----------------------------------------
+ RMSE:        0.9033 m  <-- Root Mean Square Error
+ MAE:         0.8492 m   <-- Mean Absolute Error
+ Max Error:   3.2447 m
+ Mean Bias:   0.8492 m
+========================================
+
+
+hard reset: KCF
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260119-231536.csv
+========================================
+ Samples:     15000
+ Duration:    338.3 s
+----------------------------------------
+ RMSE:        1.1237 m  <-- Root Mean Square Error
+ MAE:         0.8996 m   <-- Mean Absolute Error
+ Max Error:   7.6862 m
+ Mean Bias:   0.8996 m
+========================================
+
+
+hard reset: mosse
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260119-232220.csv
+========================================
+ Samples:     15000
+ Duration:    333.5 s
+----------------------------------------
+ RMSE:        0.8122 m  <-- Root Mean Square Error
+ MAE:         0.7600 m   <-- Mean Absolute Error
+ Max Error:   2.9779 m
+ Mean Bias:   0.7600 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260119-234156.csv
+========================================
+ Samples:     15000
+ Duration:    318.1 s
+----------------------------------------
+ RMSE:        0.7888 m  <-- Root Mean Square Error
+ MAE:         0.7440 m   <-- Mean Absolute Error
+ Max Error:   2.6973 m
+ Mean Bias:   0.7440 m
+========================================
+
+
+hard reset: MEDIANFLOW
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260119-233307.csv
+========================================
+ Samples:     1742
+ Duration:    71.3 s <---- failed after like 65 seconds
+----------------------------------------
+ RMSE:        8.3432 m  <-- Root Mean Square Error
+ MAE:         4.9953 m   <-- Mean Absolute Error
+ Max Error:   21.8512 m
+ Mean Bias:   4.9953 m
+========================================
+
+no hard reset:
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260119-233457.csv
+========================================
+ Samples:     15000
+ Duration:    313.7 s
+----------------------------------------
+ RMSE:        0.8498 m  <-- Root Mean Square Error
+ MAE:         0.7929 m   <-- Mean Absolute Error
+ Max Error:   2.6716 m
+ Mean Bias:   0.7929 m
+========================================
+
