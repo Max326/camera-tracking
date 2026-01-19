@@ -1,0 +1,201 @@
+dron nieruchomo, tylko gimbal:
+
+mosse:
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260119-213620.csv
+========================================
+ Samples:     6000
+ Duration:    139.4 s
+----------------------------------------
+ RMSE:        4.9943 m  <-- Root Mean Square Error
+ MAE:         4.3553 m   <-- Mean Absolute Error
+ Max Error:   10.8214 m
+ Mean Bias:   4.3553 m
+========================================
+
+bez hard resetu mosse:
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260119-214105.csv
+========================================
+ Samples:     6000
+ Duration:    136.3 s
+----------------------------------------
+ RMSE:        5.9878 m  <-- Root Mean Square Error
+ MAE:         5.0249 m   <-- Mean Absolute Error
+ Max Error:   13.7643 m
+ Mean Bias:   5.0249 m
+========================================
+
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260119-214551.csv
+========================================
+ Samples:     6000
+ Duration:    135.3 s
+----------------------------------------
+ RMSE:        11.6869 m  <-- Root Mean Square Error
+ MAE:         7.4693 m   <-- Mean Absolute Error
+ Max Error:   49.8146 m
+ Mean Bias:   7.4693 m
+========================================
+
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260119-214855.csv
+========================================
+ Samples:     6000
+ Duration:    129.7 s
+----------------------------------------
+ RMSE:        5.5369 m  <-- Root Mean Square Error
+ MAE:         4.7751 m   <-- Mean Absolute Error
+ Max Error:   14.6490 m
+ Mean Bias:   4.7751 m
+========================================
+
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260119-215138.csv
+========================================
+ Samples:     6000
+ Duration:    135.4 s
+----------------------------------------
+ RMSE:        5.2559 m  <-- Root Mean Square Error
+ MAE:         4.4888 m   <-- Mean Absolute Error
+ Max Error:   11.9925 m
+ Mean Bias:   4.4888 m
+========================================
+
+
+KCF:
+po hard resecie
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260119-215714.csv
+========================================
+ Samples:     6000
+ Duration:    154.2 s
+----------------------------------------
+ RMSE:        3.8481 m  <-- Root Mean Square Error
+ MAE:         3.4409 m   <-- Mean Absolute Error
+ Max Error:   7.8050 m
+ Mean Bias:   3.4409 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260119-220035.csv
+========================================
+ Samples:     6000
+ Duration:    126.2 s
+----------------------------------------
+ RMSE:        4.4713 m  <-- Root Mean Square Error
+ MAE:         3.9296 m   <-- Mean Absolute Error
+ Max Error:   10.2339 m
+ Mean Bias:   3.9296 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260119-220312.csv
+========================================
+ Samples:     6000
+ Duration:    131.3 s
+----------------------------------------
+ RMSE:        13.5282 m  <-- Root Mean Square Error
+ MAE:         7.3697 m   <-- Mean Absolute Error
+ Max Error:   65.7283 m
+ Mean Bias:   7.3697 m
+========================================
+
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260119-220605.csv
+========================================
+ Samples:     6000
+ Duration:    135.1 s
+----------------------------------------
+ RMSE:        5.1870 m  <-- Root Mean Square Error
+ MAE:         4.3218 m   <-- Mean Absolute Error
+ Max Error:   14.9385 m
+ Mean Bias:   4.3218 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260119-220900.csv
+========================================
+ Samples:     6000
+ Duration:    130.4 s
+----------------------------------------
+ RMSE:        4.5401 m  <-- Root Mean Square Error
+ MAE:         3.9224 m   <-- Mean Absolute Error
+ Max Error:   10.1491 m
+ Mean Bias:   3.9224 m
+========================================
+
+
+MEDIANFLOW:
+po hard resecie:
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260119-221225.csv
+========================================
+ Samples:     6000
+ Duration:    161.0 s
+----------------------------------------
+ RMSE:        6.8260 m  <-- Root Mean Square Error
+ MAE:         5.6217 m   <-- Mean Absolute Error
+ Max Error:   15.1197 m
+ Mean Bias:   5.6217 m
+========================================
+
+normalnie:
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260119-221545.csv
+========================================
+ Samples:     6000
+ Duration:    135.4 s
+----------------------------------------
+ RMSE:        7.0190 m  <-- Root Mean Square Error
+ MAE:         5.5657 m   <-- Mean Absolute Error
+ Max Error:   16.3126 m
+ Mean Bias:   5.5657 m
+========================================
+
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260119-221846.csv
+========================================
+ Samples:     6000
+ Duration:    135.4 s
+----------------------------------------
+ RMSE:        6.5675 m  <-- Root Mean Square Error
+ MAE:         5.3722 m   <-- Mean Absolute Error
+ Max Error:   16.8927 m
+ Mean Bias:   5.3722 m
+========================================
+
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260119-222228.csv
+========================================
+ Samples:     6000
+ Duration:    136.2 s
+----------------------------------------
+ RMSE:        7.2076 m  <-- Root Mean Square Error
+ MAE:         5.7124 m   <-- Mean Absolute Error
+ Max Error:   21.7423 m
+ Mean Bias:   5.7124 m
+========================================
+
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260119-222535.csv
+========================================
+ Samples:     6000
+ Duration:    137.8 s
+----------------------------------------
+ RMSE:        6.4272 m  <-- Root Mean Square Error
+ MAE:         5.2502 m   <-- Mean Absolute Error
+ Max Error:   13.4578 m
+ Mean Bias:   5.2502 m
+========================================
