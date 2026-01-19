@@ -199,3 +199,57 @@ normalnie:
  Max Error:   13.4578 m
  Mean Bias:   5.2502 m
 ========================================
+
+
+csrt po hard resecie:
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260119-223110.csv
+========================================
+ Samples:     6000
+ Duration:    137.6 s
+----------------------------------------
+ RMSE:        3.0786 m  <-- Root Mean Square Error
+ MAE:         2.7436 m   <-- Mean Absolute Error
+ Max Error:   6.4862 m
+ Mean Bias:   2.7436 m
+========================================
+
+normalnie:
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260119-223849.csv
+========================================
+ Samples:     6000
+ Duration:    130.8 s
+----------------------------------------
+ RMSE:        3.0818 m  <-- Root Mean Square Error
+ MAE:         2.6813 m   <-- Mean Absolute Error
+ Max Error:   7.1329 m
+ Mean Bias:   2.6813 m
+========================================
+
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260119-224142.csv
+========================================
+ Samples:     6000
+ Duration:    129.6 s
+----------------------------------------
+ RMSE:        3.6133 m  <-- Root Mean Square Error
+ MAE:         3.2137 m   <-- Mean Absolute Error
+ Max Error:   8.8765 m
+ Mean Bias:   3.2137 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260119-224913.csv
+========================================
+ Samples:     6000
+ Duration:    135.5 s
+----------------------------------------
+ RMSE:        2.7575 m  <-- Root Mean Square Error
+ MAE:         2.4635 m   <-- Mean Absolute Error
+ Max Error:   8.7429 m
+ Mean Bias:   2.4635 m
+========================================
