@@ -1,0 +1,13 @@
+medianflow, no hard reset, driving in circles
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260120-140958.csv
+========================================
+ Samples:     6735
+ Duration:    154.4 s <29.0 m/s, 0.2rad/s>
+----------------------------------------
+ RMSE:        19.3445 m  <-- Root Mean Square Error
+ MAE:         12.8474 m   <-- Mean Absolute Error
+ Max Error:   54.0690 m
+ Mean Bias:   12.8474 m
+========================================

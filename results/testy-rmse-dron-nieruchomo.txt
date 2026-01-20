@@ -82,6 +82,7 @@ po hard resecie
  Mean Bias:   3.4409 m
 ========================================
 
+bez hard resetu kcf
 ========================================
  BENCHMARK REPORT: benchmarks/Run_20260119-220035.csv
 ========================================
@@ -149,6 +150,7 @@ po hard resecie:
 
 normalnie:
 
+medianflow
 ========================================
  BENCHMARK REPORT: benchmarks/Run_20260119-221545.csv
 ========================================
@@ -252,4 +254,30 @@ normalnie:
  MAE:         2.4635 m   <-- Mean Absolute Error
  Max Error:   8.7429 m
  Mean Bias:   2.4635 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260120-183417.csv
+========================================
+ Samples:     6000
+ Duration:    121.7 s
+----------------------------------------
+ RMSE:        2.7195 m  <-- Root Mean Square Error
+ MAE:         2.4076 m   <-- Mean Absolute Error
+ Max Error:   5.9548 m
+ Mean Bias:   2.4076 m
+========================================
+
+CSRT interval 60
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260120-201429.csv
+========================================
+ Samples:     6000
+ Duration:    137.1 s
+----------------------------------------
+ RMSE:        3.4448 m  <-- Root Mean Square Error
+ MAE:         3.0018 m   <-- Mean Absolute Error
+ Max Error:   6.5232 m
+ Mean Bias:   3.0018 m
 ========================================

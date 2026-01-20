@@ -1,0 +1,206 @@
+katowanie csrt podążaniem za samochodem inkrementalnym
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260120-113624.csv
+========================================
+ Samples:     9486
+ Duration:    267.2 s
+----------------------------------------
+ RMSE:        3.3023 m  <-- Root Mean Square Error
+ MAE:         2.3746 m   <-- Mean Absolute Error
+ Max Error:   9.9414 m
+ Mean Bias:   2.3746 m
+========================================
+
+
+Odpuszczam vx, nadal CSRT:
+
+mhm, dalej to już nie ma sensu bo za daleko odjechał
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260120-115610.csv
+========================================
+ Samples:     17340
+ Duration:    357.2 s <---- 36 m/s
+----------------------------------------
+ RMSE:        58.4543 m  <-- Root Mean Square Error
+ MAE:         27.5758 m   <-- Mean Absolute Error
+ Max Error:   221.1035 m
+ Mean Bias:   27.5758 m
+========================================
+
+
+<!-- KCF XDDD
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260120-120505.csv
+========================================
+ Samples:     2508
+ Duration:    68.1 s <---- 8 m/s
+----------------------------------------
+ RMSE:        4.3566 m  <-- Root Mean Square Error
+ MAE:         3.9651 m   <-- Mean Absolute Error
+ Max Error:   12.8117 m
+ Mean Bias:   3.9651 m
+========================================
+
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260120-120705.csv
+========================================
+ Samples:     5633
+ Duration:    156.9 s <----- 14 m/s
+----------------------------------------
+ RMSE:        1.8635 m  <-- Root Mean Square Error
+ MAE:         1.6103 m   <-- Mean Absolute Error
+ Max Error:   8.7700 m
+ Mean Bias:   1.6103 m
+======================================== -->
+
+KCF fura na blisko - 7m
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260120-125636.csv
+========================================
+ Samples:     3599
+ Duration:    99.9 s <10 m/s>
+----------------------------------------
+ RMSE:        3.4049 m  <-- Root Mean Square Error
+ MAE:         1.5253 m   <-- Mean Absolute Error
+ Max Error:   25.8347 m
+ Mean Bias:   1.5253 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260120-125913.csv
+========================================
+ Samples:     3607
+ Duration:    97.6 s <10m/s>
+----------------------------------------
+ RMSE:        3.7243 m  <-- Root Mean Square Error
+ MAE:         1.7939 m   <-- Mean Absolute Error
+ Max Error:   27.1391 m
+ Mean Bias:   1.7939 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260120-130123.csv
+========================================
+ Samples:     6723
+ Duration:    156.9 s <16 m/s>
+----------------------------------------
+ RMSE:        3.9078 m  <-- Root Mean Square Error
+ MAE:         2.2981 m   <-- Mean Absolute Error
+ Max Error:   21.0616 m
+ Mean Bias:   2.2981 m
+========================================
+
+
+mosse:
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260120-121341.csv
+========================================
+ Samples:     6667
+ Duration:    180.5 s <---- 18 m/s
+----------------------------------------
+ RMSE:        5.0534 m  <-- Root Mean Square Error
+ MAE:         3.5179 m   <-- Mean Absolute Error
+ Max Error:   16.8422 m
+ Mean Bias:   3.5179 m
+========================================
+
+mosse fura na blisko -> 12-5m = 7m od drona
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260120-122001.csv
+========================================
+ Samples:     5670
+ Duration:    161.5 s <--- 14 m/s
+----------------------------------------
+ RMSE:        3.7074 m  <-- Root Mean Square Error
+ MAE:         2.3016 m   <-- Mean Absolute Error
+ Max Error:   22.6910 m
+ Mean Bias:   2.3016 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260120-122812.csv
+========================================
+ Samples:     6716
+ Duration:    153.3 s <---- 16 m/s
+----------------------------------------
+ RMSE:        4.4970 m  <-- Root Mean Square Error
+ MAE:         2.9645 m   <-- Mean Absolute Error
+ Max Error:   16.8133 m
+ Mean Bias:   2.9645 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260120-124756.csv
+========================================
+ Samples:     6721
+ Duration:    150.2 s <---> 16m/s
+----------------------------------------
+ RMSE:        3.9197 m  <-- Root Mean Square Error
+ MAE:         2.6704 m   <-- Mean Absolute Error
+ Max Error:   16.9626 m
+ Mean Bias:   2.6704 m
+========================================
+
+
+MEDIANFLOW:
+
+hard reset, fura na blisko
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260120-131039.csv
+========================================
+ Samples:     4560
+ Duration:    113.8 s
+----------------------------------------
+ RMSE:        4.3869 m  <-- Root Mean Square Error
+ MAE:         2.7997 m   <-- Mean Absolute Error
+ Max Error:   19.2993 m
+ Mean Bias:   2.7997 m
+========================================
+
+
+bez hard resetu:
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260120-133051.csv
+========================================
+ Samples:     9382
+ Duration:    288.2 s <20 m/s ale sie zaczelo pierdzielic w trakcie i musialem interweniować>
+----------------------------------------
+ RMSE:        16.3527 m  <-- Root Mean Square Error
+ MAE:         9.2595 m   <-- Mean Absolute Error
+ Max Error:   52.0021 m
+ Mean Bias:   9.2595 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260120-133635.csv
+========================================
+ Samples:     5712
+ Duration:    301.7 s <14m/s nie wiem ile w tym prawdy>
+----------------------------------------
+ RMSE:        4.4316 m  <-- Root Mean Square Error
+ MAE:         2.7817 m   <-- Mean Absolute Error
+ Max Error:   15.6070 m
+ Mean Bias:   2.7817 m
+========================================
+
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260120-134755.csv
+========================================
+ Samples:     6759
+ Duration:    235.1 s <16 m/s>
+----------------------------------------
+ RMSE:        5.7299 m  <-- Root Mean Square Error
+ MAE:         3.6417 m   <-- Mean Absolute Error
+ Max Error:   21.4270 m
+ Mean Bias:   3.6417 m
+========================================
