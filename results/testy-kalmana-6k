@@ -1,0 +1,382 @@
+testy kalmana: (0, 0, vz, yaw_rate) -> sterowanie yawem i gimbalem, samochod jezdzi (4.0, 0.25)
+
+6000 sampli
+
+CSRT, co 10 klatek
+
+na początek:
+
+Brak Kalmana, po hard resecie:
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-193706.csv
+========================================
+ Samples:     6000
+ Duration:    167.0 s
+----------------------------------------
+ RMSE:        2.9045 m  <-- Root Mean Square Error
+ MAE:         2.4807 m   <-- Mean Absolute Error
+ Max Error:   5.9740 m
+ Mean Bias:   2.4807 m
+========================================
+
+Bez hard resetu:
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-194207.csv
+========================================
+ Samples:     6000
+ Duration:    135.3 s
+----------------------------------------
+ RMSE:        3.0539 m  <-- Root Mean Square Error
+ MAE:         2.6098 m   <-- Mean Absolute Error
+ Max Error:   6.7148 m
+ Mean Bias:   2.6098 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-194528.csv
+========================================
+ Samples:     6000
+ Duration:    136.3 s
+----------------------------------------
+ RMSE:        3.0300 m  <-- Root Mean Square Error
+ MAE:         2.6194 m   <-- Mean Absolute Error
+ Max Error:   6.2376 m
+ Mean Bias:   2.6194 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-194917.csv
+========================================
+ Samples:     6000
+ Duration:    134.0 s
+----------------------------------------
+ RMSE:        3.5850 m  <-- Root Mean Square Error
+ MAE:         2.9744 m   <-- Mean Absolute Error
+ Max Error:   9.2927 m
+========================================
+
+
+Kalman: process_noise=1.0, measurement_noise=0.1
+bez hard resetu od razu:
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-195346.csv
+========================================
+ Samples:     6000
+ Duration:    134.2 s
+----------------------------------------
+ RMSE:        3.3408 m  <-- Root Mean Square Error
+ MAE:         2.8965 m   <-- Mean Absolute Error
+ Max Error:   6.1686 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-195755.csv
+========================================
+ Samples:     6000
+ Duration:    134.9 s
+----------------------------------------
+ RMSE:        2.6262 m  <-- Root Mean Square Error
+ MAE:         2.2292 m   <-- Mean Absolute Error
+ Max Error:   5.7621 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-200055.csv
+========================================
+ Samples:     6000
+ Duration:    128.7 s
+----------------------------------------
+ RMSE:        3.1830 m  <-- Root Mean Square Error
+ MAE:         2.7747 m   <-- Mean Absolute Error
+ Max Error:   6.5542 m
+========================================
+
+Kalman: process_noise=0.1, measurement_noise=0.1
+bez hard resetu:
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-200438.csv
+========================================
+ Samples:     6000
+ Duration:    129.1 s
+----------------------------------------
+ RMSE:        3.5583 m  <-- Root Mean Square Error
+ MAE:         3.0021 m   <-- Mean Absolute Error
+ Max Error:   7.7119 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-200818.csv
+========================================
+ Samples:     6000
+ Duration:    134.6 s
+----------------------------------------
+ RMSE:        2.7908 m  <-- Root Mean Square Error
+ MAE:         2.4090 m   <-- Mean Absolute Error
+ Max Error:   5.7718 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-201123.csv
+========================================
+ Samples:     6000
+ Duration:    126.4 s
+----------------------------------------
+ RMSE:        2.8783 m  <-- Root Mean Square Error
+ MAE:         2.4448 m   <-- Mean Absolute Error
+ Max Error:   5.8415 m
+========================================
+
+Kalman: process_noise=0.1, measurement_noise=1.0
+bez hard resetu:
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-201454.csv
+========================================
+ Samples:     6000
+ Duration:    133.7 s
+----------------------------------------
+ RMSE:        2.6883 m  <-- Root Mean Square Error
+ MAE:         2.2506 m   <-- Mean Absolute Error
+ Max Error:   5.8069 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-201806.csv
+========================================
+ Samples:     6000
+ Duration:    126.9 s
+----------------------------------------
+ RMSE:        3.1881 m  <-- Root Mean Square Error
+ MAE:         2.7028 m   <-- Mean Absolute Error
+ Max Error:   6.3987 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-202121.csv
+========================================
+ Samples:     6000
+ Duration:    133.6 s
+----------------------------------------
+ RMSE:        2.6610 m  <-- Root Mean Square Error
+ MAE:         2.2703 m   <-- Mean Absolute Error
+ Max Error:   6.2411 m
+========================================
+
+
+Kalman: process_noise=10.0, measurement_noise=0.01
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-202849.csv
+========================================
+ Samples:     6000
+ Duration:    127.7 s
+----------------------------------------
+ RMSE:        3.0983 m  <-- Root Mean Square Error
+ MAE:         2.6436 m   <-- Mean Absolute Error
+ Max Error:   6.5704 m
+========================================
+
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-203309.csv
+========================================
+ Samples:     6000
+ Duration:    134.4 s
+----------------------------------------
+ RMSE:        3.2173 m  <-- Root Mean Square Error
+ MAE:         2.6788 m   <-- Mean Absolute Error
+ Max Error:   7.1102 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-203606.csv
+========================================
+ Samples:     6000
+ Duration:    133.4 s
+----------------------------------------
+ RMSE:        3.4240 m  <-- Root Mean Square Error
+ MAE:         2.9329 m   <-- Mean Absolute Error
+ Max Error:   7.1178 m
+========================================
+
+
+Kalman: process_noise=1.0, measurement_noise=1.0
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-204232.csv
+========================================
+ Samples:     6000
+ Duration:    128.2 s
+----------------------------------------
+ RMSE:        2.8962 m  <-- Root Mean Square Error
+ MAE:         2.4442 m   <-- Mean Absolute Error
+ Max Error:   6.7626 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-204610.csv
+========================================
+ Samples:     6000
+ Duration:    135.1 s
+----------------------------------------
+ RMSE:        3.0897 m  <-- Root Mean Square Error
+ MAE:         2.5397 m   <-- Mean Absolute Error
+ Max Error:   6.4809 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-205410.csv
+========================================
+ Samples:     6000
+ Duration:    128.0 s
+----------------------------------------
+ RMSE:        3.4471 m  <-- Root Mean Square Error
+ MAE:         2.8778 m   <-- Mean Absolute Error
+ Max Error:   6.7825 m
+========================================
+
+
+Kalman: process noise=0.01, measurement_noise=10.0
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-205749.csv
+========================================
+ Samples:     6000
+ Duration:    135.6 s
+----------------------------------------
+ RMSE:        3.2725 m  <-- Root Mean Square Error
+ MAE:         2.7425 m   <-- Mean Absolute Error
+ Max Error:   6.4681 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-211010.csv
+========================================
+ Samples:     6000
+ Duration:    130.5 s
+----------------------------------------
+ RMSE:        3.3550 m  <-- Root Mean Square Error
+ MAE:         2.9071 m   <-- Mean Absolute Error
+ Max Error:   6.3833 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-212357.csv
+========================================
+ Samples:     6000
+ Duration:    128.6 s
+----------------------------------------
+ RMSE:        3.3677 m  <-- Root Mean Square Error
+ MAE:         2.8345 m   <-- Mean Absolute Error
+ Max Error:   6.1472 m
+========================================
+
+Kalman: process_noise=0.1, measurement_noise=10.0
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-213158.csv
+========================================
+ Samples:     6000
+ Duration:    130.6 s
+----------------------------------------
+ RMSE:        3.7229 m  <-- Root Mean Square Error
+ MAE:         3.1949 m   <-- Mean Absolute Error
+ Max Error:   6.3085 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-213633.csv
+========================================
+ Samples:     6000
+ Duration:    135.3 s
+----------------------------------------
+ RMSE:        2.7976 m  <-- Root Mean Square Error
+ MAE:         2.3181 m   <-- Mean Absolute Error
+ Max Error:   5.9315 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-214516.csv
+========================================
+ Samples:     6000
+ Duration:    129.0 s
+----------------------------------------
+ RMSE:        3.0089 m  <-- Root Mean Square Error
+ MAE:         2.4818 m   <-- Mean Absolute Error
+ Max Error:   6.3739 m
+========================================
+
+
+Kalman: process_noise=10.0, measurement_noise=0.1
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-215200.csv
+========================================
+ Samples:     6000
+ Duration:    134.8 s
+----------------------------------------
+ RMSE:        3.4753 m  <-- Root Mean Square Error
+ MAE:         2.9868 m   <-- Mean Absolute Error
+ Max Error:   6.5709 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-215824.csv
+========================================
+ Samples:     6000
+ Duration:    130.5 s
+----------------------------------------
+ RMSE:        3.3733 m  <-- Root Mean Square Error
+ MAE:         2.8724 m   <-- Mean Absolute Error
+ Max Error:   7.2571 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-220130.csv
+========================================
+ Samples:     6000
+ Duration:    134.6 s
+----------------------------------------
+ RMSE:        2.7834 m  <-- Root Mean Square Error
+ MAE:         2.4593 m   <-- Mean Absolute Error
+ Max Error:   5.6321 m
+========================================
+
+Kalman: process_noise=0.01, measurement_noise=1.0
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-230020.csv
+========================================
+ Samples:     6000
+ Duration:    128.5 s
+----------------------------------------
+ RMSE:        2.6347 m  <-- Root Mean Square Error
+ MAE:         2.1839 m   <-- Mean Absolute Error
+ Max Error:   5.1838 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-230313.csv
+========================================
+ Samples:     6000
+ Duration:    134.0 s
+----------------------------------------
+ RMSE:        2.8867 m  <-- Root Mean Square Error
+ MAE:         2.4769 m   <-- Mean Absolute Error
+ Max Error:   5.5424 m
+========================================
+
+========================================
+ BENCHMARK REPORT: benchmarks/Run_20260125-230626.csv
+========================================
+ Samples:     6000
+ Duration:    134.4 s
+----------------------------------------
+ RMSE:        3.1613 m  <-- Root Mean Square Error
+ MAE:         2.6889 m   <-- Mean Absolute Error
+ Max Error:   6.3076 m
+========================================
+
